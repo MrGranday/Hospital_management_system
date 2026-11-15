@@ -19,10 +19,11 @@ next-env.d.ts
 /coverage
 *.tsbuildinfo
 
-# Environment
+# Environment and local credentials
 .env
 .env*.local
 .env.production
+supabase_.md
 !.env.example
 
 # Logs
