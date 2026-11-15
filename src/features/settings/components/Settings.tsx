@@ -8,11 +8,8 @@ import {
   Shield,
   Bell,
   Palette,
-  Plug,
   Database,
-  Plus,
   Search,
-  Mail,
   MoreVertical,
   CheckCircle2,
   Lock,
@@ -58,19 +55,9 @@ const TABS = [
   { key: "notifications", label: "Notifications", icon: Bell },
   { key: "appearance", label: "Appearance", icon: Palette },
   { key: "hospital", label: "Hospital Profile", icon: Building2 },
-  { key: "integrations", label: "Integrations", icon: Plug },
   { key: "system", label: "System", icon: Database },
 ] as const;
 type TabKey = typeof TABS[number]["key"];
-
-const INTEGRATIONS = [
-  { name: "Twilio SMS", category: "Communication", status: "connected", icon: Bell, color: "text-red-600 bg-red-50" },
-  { name: "Stripe Payments", category: "Billing", status: "connected", icon: Shield, color: "text-violet-600 bg-violet-50" },
-  { name: "AWS S3 Storage", category: "Storage", status: "connected", icon: Database, color: "text-amber-600 bg-amber-50" },
-  { name: "Twilio Video", category: "Telemedicine", status: "connected", icon: Globe, color: "text-red-600 bg-red-50" },
-  { name: "SendGrid Email", category: "Communication", status: "disconnected", icon: Mail, color: "text-blue-600 bg-blue-50" },
-  { name: "HL7 FHIR API", category: "Interoperability", status: "connected", icon: Plug, color: "text-emerald-600 bg-emerald-50" },
-];
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState<TabKey>("appearance");
@@ -89,7 +76,7 @@ export default function Settings() {
           <span className="text-xs font-semibold text-brand-600 uppercase tracking-wider">System Configuration</span>
         </div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground mt-1">Manage users, security, integrations, appearance, and system preferences</p>
+        <p className="text-sm text-muted-foreground mt-1">Manage users, security, appearance, and system preferences</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -173,7 +160,6 @@ export default function Settings() {
             {activeTab === "notifications" && <NotificationsTab />}
             {activeTab === "appearance" && <AppearanceTab />}
             {activeTab === "hospital" && <HospitalTab />}
-            {activeTab === "integrations" && <IntegrationsTab />}
             {activeTab === "system" && <SystemTab />}
           </Card>
         </div>
@@ -377,45 +363,6 @@ function HospitalTab() {
         <Button className="bg-brand-600 hover:bg-brand-700" onClick={() => { setHospital(form); pushToast({ title: "Hospital profile saved", variant: "success" }); }}>
           <Save className="h-4 w-4 mr-1.5" /> Save Changes
         </Button>
-      </div>
-    </div>
-  );
-}
-
-function IntegrationsTab() {
-  const { pushToast } = useAppStore();
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="font-semibold text-foreground">Integrations</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">Connect MediCore with external services</p>
-        </div>
-        <Button size="sm" className="bg-brand-600 hover:bg-brand-700" onClick={() => pushToast({ title: "Integration marketplace", description: "Browse and install new integrations", variant: "info" })}>
-          <Plus className="h-4 w-4 mr-1.5" /> Add Integration
-        </Button>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {INTEGRATIONS.map((integ, i) => (
-          <motion.div key={integ.name} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.04 }}>
-            <Card className="border-border/60 shadow-soft hover:shadow-premium transition-all rounded-xl p-4 h-full">
-              <div className="flex items-start justify-between mb-3">
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${integ.color}`}><integ.icon className="h-5 w-5" /></div>
-                <StatusPill status={integ.status === "connected" ? "success" : "neutral"}>{integ.status === "connected" ? "Connected" : "Disconnected"}</StatusPill>
-              </div>
-              <p className="text-sm font-semibold">{integ.name}</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">{integ.category}</p>
-              <Button
-                variant={integ.status === "connected" ? "outline" : "default"}
-                size="sm"
-                className={`w-full mt-3 h-8 text-xs ${integ.status === "connected" ? "" : "bg-brand-600 hover:bg-brand-700"}`}
-                onClick={() => pushToast({ title: `${integ.status === "connected" ? "Configuring" : "Connecting"} ${integ.name}`, variant: "info" })}
-              >
-                {integ.status === "connected" ? "Configure" : "Connect"}
-              </Button>
-            </Card>
-          </motion.div>
-        ))}
       </div>
     </div>
   );

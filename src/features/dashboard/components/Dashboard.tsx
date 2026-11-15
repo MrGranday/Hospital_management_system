@@ -68,10 +68,6 @@ export default function Dashboard() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-semibold text-brand-600 uppercase tracking-wider">Operations Dashboard</span>
-            <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-md font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              LIVE
-            </span>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
             Good morning, {user?.name?.split(" ").slice(-1)[0] || "Doctor"}.
@@ -315,7 +311,7 @@ export default function Dashboard() {
           <div className="flex items-start justify-between mb-4">
             <div>
               <h3 className="font-semibold text-foreground">Today&apos;s OPD Queue</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">Live patient flow · auto-refreshing</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Patient flow for today</p>
             </div>
             <Button variant="ghost" size="sm" className="h-8 text-xs text-brand-600 hover:text-brand-700" onClick={() => setPage("opd")}>
               View all <ArrowRight className="h-3 w-3 ml-1" />

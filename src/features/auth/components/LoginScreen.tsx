@@ -8,14 +8,10 @@ import {
   User as UserIcon,
   ChevronDown,
   ShieldCheck,
-  Activity,
-  HeartPulse,
-  Users,
   ArrowRight,
-  Fingerprint,
 } from "lucide-react";
 import { useAppStore } from "@/store/app-store";
-import { USERS_BY_ROLE, ROLE_LABELS, type Role } from "@/_legacy/mock-data/data";
+import { ROLE_LABELS, type Role } from "@/_legacy/mock-data/data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,38 +64,6 @@ export default function LoginScreen() {
 
   return (
     <div className="min-h-screen w-full mesh-blue relative overflow-hidden flex">
-      {/* Decorative floating cards */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <FloatingCard
-          className="top-[10%] left-[8%]"
-          icon={<Activity className="h-5 w-5 text-brand-200" />}
-          label="Live Operations"
-          value="96 visits today"
-          delay={0.2}
-        />
-        <FloatingCard
-          className="top-[22%] right-[10%]"
-          icon={<HeartPulse className="h-5 w-5 text-rose-300" />}
-          label="Critical Patients"
-          value="3 monitoring"
-          delay={0.4}
-        />
-        <FloatingCard
-          className="bottom-[18%] left-[12%]"
-          icon={<Users className="h-5 w-5 text-emerald-300" />}
-          label="Staff On Duty"
-          value="124 clinicians"
-          delay={0.6}
-        />
-        <FloatingCard
-          className="bottom-[10%] right-[14%]"
-          icon={<ShieldCheck className="h-5 w-5 text-brand-200" />}
-          label="HIPAA Compliant"
-          value="End-to-end encrypted"
-          delay={0.8}
-        />
-      </div>
-
       {/* Left brand panel */}
       <div className="hidden lg:flex flex-col justify-between p-12 w-[44%] relative z-10">
         <motion.div
@@ -113,7 +77,7 @@ export default function LoginScreen() {
           </div>
           <div>
             <p className="text-white font-semibold text-lg tracking-tight">MediCore</p>
-            <p className="text-white/60 text-xs">Enterprise Hospital OS</p>
+            <p className="text-white/60 text-xs">Hospital Management System</p>
           </div>
         </motion.div>
 
@@ -124,25 +88,17 @@ export default function LoginScreen() {
           className="space-y-5 max-w-md"
         >
           <h1 className="text-white font-bold text-4xl xl:text-5xl leading-[1.1] tracking-tight">
-            Care delivery,<br />
-            <span className="bg-gradient-to-r from-brand-200 to-cyan-200 bg-clip-text text-transparent">
-              reimagined.
-            </span>
+            Hospital operations,<br />
+            in one place.
           </h1>
           <p className="text-white/70 text-base leading-relaxed">
-            One unified platform for clinicians, nurses, pharmacists, and administrators —
-            designed to reduce cognitive load and put patient outcomes first.
+            Patient records, appointments, billing, pharmacy, laboratory and inventory
+            for hospital staff.
           </p>
-
-          <div className="grid grid-cols-3 gap-3 pt-4">
-            <StatCard value="20+" label="Modules" />
-            <StatCard value="99.99%" label="Uptime" />
-            <StatCard value="SOC 2" label="Certified" />
-          </div>
         </motion.div>
 
         <p className="text-white/40 text-xs">
-          © 2026 MediCore Systems · Trusted by 240+ hospitals worldwide
+          MediCore
         </p>
       </div>
 
@@ -284,59 +240,10 @@ export default function LoginScreen() {
                 )}
               </AnimatePresence>
             </form>
-
-            <div className="mt-7 pt-5 border-t border-white/40">
-              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                <Fingerprint className="h-3.5 w-3.5" />
-                <span>SSO · SAML · LDAP supported</span>
-              </div>
-            </div>
           </div>
         </motion.div>
       </div>
       <Toaster />
-    </div>
-  );
-}
-
-function FloatingCard({
-  className,
-  icon,
-  label,
-  value,
-  delay,
-}: {
-  className?: string;
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  delay: number;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay }}
-      className={`absolute ${className} hidden md:block`}
-    >
-      <div className="glass rounded-xl px-4 py-3 shadow-soft flex items-center gap-3 min-w-[180px]">
-        <div className="w-9 h-9 rounded-lg bg-white/40 flex items-center justify-center">
-          {icon}
-        </div>
-        <div>
-          <p className="text-[10px] uppercase tracking-wider text-slate-500 font-medium">{label}</p>
-          <p className="text-sm font-semibold text-slate-700">{value}</p>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-function StatCard({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm px-3 py-3 text-center">
-      <p className="text-white font-bold text-lg">{value}</p>
-      <p className="text-white/50 text-[10px] uppercase tracking-wider mt-0.5">{label}</p>
     </div>
   );
 }
