@@ -147,23 +147,22 @@ export function saveTheme(prefs: ThemePrefs) {
 // React hook for theme access + updates
 // ============================================================================
 export function useTheme() {
-  const [prefs, setPrefs] = useState<ThemePrefs>(DEFAULT_THEME);
-  const [ready, setReady] = useState(false);
+  const [prefs, setPrefs] = useState<ThemePrefs>(() =>
+    typeof window === "undefined" ? DEFAULT_THEME : loadTheme(),
+  );
 
   useEffect(() => {
-    const loaded = loadTheme();
-    setPrefs(loaded);
-    applyTheme(loaded);
-    setReady(true);
-    // Listen for system theme changes if in system mode
+    applyTheme(prefs);
+  }, [prefs]);
+
+  useEffect(() => {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const onChange = () => {
       if (prefs.mode === "system") applyTheme(prefs);
     };
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [prefs]);
 
   const update = useCallback((partial: Partial<ThemePrefs>) => {
     setPrefs((prev) => {
@@ -174,5 +173,5 @@ export function useTheme() {
     });
   }, []);
 
-  return { prefs, update, ready };
+  return { prefs, update };
 }

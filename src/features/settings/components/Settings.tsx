@@ -218,7 +218,7 @@ function NotificationsTab() {
     <div className="space-y-5">
       <div>
         <h2 className="font-semibold text-foreground">Notification Preferences</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">Choose what triggers notifications and how they're delivered</p>
+        <p className="text-xs text-muted-foreground mt-0.5">Choose what triggers notifications and how they&apos;re delivered</p>
       </div>
       {items.map((it) => (
         <SecurityRow

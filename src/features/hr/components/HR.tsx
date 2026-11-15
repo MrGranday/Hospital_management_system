@@ -54,7 +54,7 @@ export default function HR() {
   const { openModal, pushToast, liveStaff } = useAppStore();
 
   // Merge live + static staff (live first). Map LiveStaff → StaffMember-like shape with defaults.
-  const allStaff: StaffMember[] = [
+  const allStaff: StaffMember[] = useMemo(() => [
     ...liveStaff.map((s) => ({
       id: s.id,
       name: s.name,
@@ -70,7 +70,7 @@ export default function HR() {
       joinDate: s.joinedOn,
     })),
     ...STAFF_DIRECTORY,
-  ];
+  ], [liveStaff]);
 
   const departments = useMemo(() => ["All", ...Array.from(new Set(allStaff.map((s) => s.department)))], [allStaff]);
 

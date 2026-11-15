@@ -629,10 +629,10 @@ function CommandPalette() {
     return all.filter((i) => i.label.toLowerCase().includes(query.toLowerCase()));
   }, [query, role]);
 
-  // Reset query when palette closes
-  useEffect(() => {
-    if (!commandOpen && query !== "") setQuery("");
-  }, [commandOpen]);
+  const closePalette = () => {
+    setCommandOpen(false);
+    setQuery("");
+  };
 
   return (
     <AnimatePresence>
@@ -643,7 +643,7 @@ function CommandPalette() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
-            onClick={() => setCommandOpen(false)}
+            onClick={closePalette}
           />
           <motion.div
             initial={{ opacity: 0, scale: 0.97, y: -8 }}
@@ -675,7 +675,7 @@ function CommandPalette() {
                       key={item.key}
                       onClick={() => {
                         setPage(item.key);
-                        setCommandOpen(false);
+                        closePalette();
                       }}
                       className="w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-accent transition-colors text-left"
                     >

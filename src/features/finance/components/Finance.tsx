@@ -26,6 +26,7 @@ import { EXPENSES, EXPENSE_BY_CATEGORY, PROFIT_LOSS, type ExpenseRecord } from "
 import { KpiCard, StatusPill } from "@/components/shared/ui-bits";
 import { useAppStore } from "@/store/app-store";
 import { exportToCsv, printDoc } from "@/lib/print";
+import { makeDocNumber } from "@/lib/ids";
 
 const EXPENSE_STATUS: Record<ExpenseRecord["status"], { status: "success" | "warning" | "danger" | "info" | "neutral"; label: string }> = {
   paid: { status: "success", label: "Paid" },
@@ -54,7 +55,7 @@ export default function Finance() {
   const { openModal, pushToast, liveExpenses } = useAppStore();
 
   // Merge live + static expenses (live first). Live expenses default to paid/Cash.
-  const allExpenses: ExpenseRecord[] = [
+  const allExpenses: ExpenseRecord[] = useMemo(() => [
     ...liveExpenses.map((e) => ({
       id: e.id,
       date: e.date,
@@ -66,7 +67,7 @@ export default function Finance() {
       paymentMethod: "Cash",
     })),
     ...EXPENSES,
-  ];
+  ], [liveExpenses]);
 
   const stats = useMemo(() => {
     const totalExpense = allExpenses.reduce((s, e) => s + e.amount, 0);
@@ -108,7 +109,7 @@ export default function Finance() {
     printDoc({
       title,
       docType: "Report",
-      docNum: `RPT-${Date.now()}`,
+      docNum: makeDocNumber("RPT"),
       patient: "Hospital",
       mrn: "N/A",
       date: new Date().toISOString(),

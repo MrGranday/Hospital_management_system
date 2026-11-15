@@ -40,7 +40,7 @@ export default function IPD() {
   const { openModal, pushToast, liveBeds, dischargeBed } = useAppStore();
 
   // Merge live + static beds (live first). Map LiveBed → Bed shape.
-  const allBeds: (Bed & { _live?: boolean })[] = [
+  const allBeds: (Bed & { _live?: boolean })[] = useMemo(() => [
     ...liveBeds.map((b) => ({
       id: b.id,
       ward: b.ward,
@@ -55,7 +55,7 @@ export default function IPD() {
       _live: true as const,
     })),
     ...BEDS,
-  ];
+  ], [liveBeds]);
 
   const filteredBeds = useMemo(() => {
     return allBeds.filter((b) => selectedWard === "all" || b.ward === selectedWard);
