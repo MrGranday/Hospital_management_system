@@ -19,13 +19,10 @@ import Radiology from "@/features/radiology/components/Radiology";
 import Finance from "@/features/finance/components/Finance";
 import HR from "@/features/hr/components/HR";
 import Reports from "@/features/reports/components/Reports";
-import Communications from "@/_legacy/communications/Communications";
-import Telemedicine from "@/_legacy/telemedicine/Telemedicine";
 import Settings from "@/features/settings/components/Settings";
 import Purchases from "@/features/purchases/components/Purchases";
 import BloodBank from "@/features/blood-bank/components/BloodBank";
 import ActivityLog from "@/features/audit-log/components/ActivityLog";
-import BackupRestore from "@/_legacy/backup-restore/BackupRestore";
 import Roles from "@/features/users-roles/components/Roles";
 import Suppliers from "@/features/suppliers/components/Suppliers";
 
@@ -77,10 +74,6 @@ function PageRouter({ page }: { page: PageKey }) {
       return <HR />;
     case "reports":
       return <Reports />;
-    case "communications":
-      return <Communications />;
-    case "live-consultation":
-      return <Telemedicine />;
     case "purchases":
       return <Purchases />;
     case "blood-bank":
@@ -89,8 +82,6 @@ function PageRouter({ page }: { page: PageKey }) {
       return <Suppliers />;
     case "activity-log":
       return <ActivityLog />;
-    case "backup":
-      return <BackupRestore />;
     case "roles":
       return <Roles />;
     case "settings":

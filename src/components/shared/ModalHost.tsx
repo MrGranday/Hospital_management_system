@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Banknote, Shield,
   CheckCircle2, RotateCcw, Pill, Package, User, Calendar, FlaskConical, Wallet,
-  BedDouble, UserCog, Megaphone, Video, FileText, AlertTriangle, Stethoscope, Activity,
+  BedDouble, UserCog, FileText, AlertTriangle, Stethoscope, Activity,
   Syringe, Microscope, Smile, Send, Printer, DollarSign,
 } from "lucide-react";
 import { useAppStore } from "@/store/app-store";
@@ -124,9 +124,7 @@ export function ModalHost() {
         {activeModal === "newExpense" && <NewExpenseModal key="ne" onClose={closeModal} />}
         {activeModal === "admitPatient" && <AdmitPatientModal key="ap" onClose={closeModal} />}
         {activeModal === "newStaff" && <NewStaffModal key="ns" onClose={closeModal} />}
-        {activeModal === "sendAnnouncement" && <AnnouncementModal key="an" onClose={closeModal} />}
-        {activeModal === "startCall" && <StartCallModal key="sc" onClose={closeModal} />}
-        {activeModal === "newNote" && <NewNoteModal key="nn" onClose={closeModal} />}
+      {activeModal === "newNote" && <NewNoteModal key="nn" onClose={closeModal} />}
         {activeModal === "collectPayment" && <CollectPaymentModal key="cp" onClose={closeModal} />}
         {activeModal === "viewLabResult" && <LabResultModal key="vr" onClose={closeModal} />}
       </AnimatePresence>
@@ -1587,54 +1585,6 @@ function NewStaffModal({ onClose }: { onClose: () => void }) {
         <div><Label className="text-xs uppercase text-muted-foreground">Department</Label><select value={dept} onChange={(e) => setDept(e.target.value)} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="">General</option>{DEPARTMENTS.map((d) => <option key={d}>{d}</option>)}</select></div>
         <div><Label className="text-xs uppercase text-muted-foreground">Email *</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-9 mt-1" /></div>
         <div><Label className="text-xs uppercase text-muted-foreground">Phone</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} className="h-9 mt-1" /></div>
-      </div>
-    </ModalShell>
-  );
-}
-
-function AnnouncementModal({ onClose }: { onClose: () => void }) {
-  const { closeModal, pushToast, logActivity, addAnnouncement } = useAppStore();
-  const [channel, setChannel] = useState("admin"); const [subject, setSubject] = useState(""); const [message, setMessage] = useState("");
-
-  const handleSubmit = () => {
-    if (!subject.trim() || !message.trim()) { pushToast({ title: "Subject and message are required", variant: "warning" }); return; }
-    addAnnouncement({ channel, subject: subject.trim(), message: message.trim() });
-    logActivity({ action: "Sent announcement", category: "system", details: `To ${channel} — ${subject}` });
-    pushToast({ title: "Announcement Sent ✓", description: `Posted to ${channel}`, variant: "success" });
-    closeModal();
-  };
-
-  return (
-    <ModalShell title="Send Announcement" subtitle="Broadcast a message" icon={Megaphone} iconClass="bg-violet-50 text-violet-600" onClose={onClose}
-      footer={<SubmitFooter onClose={closeModal} onSubmit={handleSubmit} label="Send Announcement" icon={Megaphone} />}>
-      <div className="space-y-4">
-        <div><Label className="text-xs uppercase text-muted-foreground">Channel</Label><select value={channel} onChange={(e) => setChannel(e.target.value)} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="admin">Administration</option><option value="cardiology">Cardiology</option><option value="er">Emergency</option><option value="pharmacy">Pharmacy</option><option value="all">All Staff</option></select></div>
-        <div><Label className="text-xs uppercase text-muted-foreground">Subject</Label><Input value={subject} onChange={(e) => setSubject(e.target.value)} className="h-9 mt-1" /></div>
-        <div><Label className="text-xs uppercase text-muted-foreground">Message</Label><Textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={4} className="mt-1" /></div>
-      </div>
-    </ModalShell>
-  );
-}
-
-function StartCallModal({ onClose }: { onClose: () => void }) {
-  const { closeModal, pushToast, logActivity, setPage } = useAppStore();
-  const allPatients = useAllPatients();
-  const [patient, setPatient] = useState("");
-
-  const handleSubmit = () => {
-    const p = allPatients.find((x) => x.id === patient);
-    if (!p) { pushToast({ title: "Select patient", variant: "warning" }); return; }
-    logActivity({ action: "Started video consultation", category: "patient", details: `Connecting to ${p.name}` });
-    pushToast({ title: "Starting call...", description: `Connecting to ${p.name}`, variant: "success" });
-    closeModal();
-    setPage("live-consultation");
-  };
-
-  return (
-    <ModalShell title="Start Video Consultation" subtitle="Begin a telemedicine call" icon={Video} onClose={onClose}
-      footer={<SubmitFooter onClose={closeModal} onSubmit={handleSubmit} label="Start Call" icon={Video} />}>
-      <div className="space-y-4">
-        <div><Label className="text-xs uppercase text-muted-foreground">Patient</Label><select value={patient} onChange={(e) => setPatient(e.target.value)} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="">Select...</option>{allPatients.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
       </div>
     </ModalShell>
   );

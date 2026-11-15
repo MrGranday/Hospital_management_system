@@ -422,56 +422,28 @@ function IntegrationsTab() {
 }
 
 function SystemTab() {
-  const { pushToast, backups, createBackup, setPage } = useAppStore();
+  const { setPage } = useAppStore();
   return (
     <div className="space-y-5">
       <div>
         <h2 className="font-semibold text-foreground">System Information</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">System status and operational metrics</p>
+        <p className="text-xs text-muted-foreground mt-0.5">Build and storage details for this installation</p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <SystemInfoCard label="System Version" value="MediCore v3.0.0" icon={SettingsIcon} />
-        <SystemInfoCard label="Database" value="Zustand + localStorage (browser)" icon={Database} />
-        <SystemInfoCard label="Backups Stored" value={`${backups.length} snapshots`} icon={Database} />
-        <SystemInfoCard label="Active Sessions" value="42" icon={Users} />
-        <SystemInfoCard label="API Response Time" value="124ms avg" icon={Globe} />
-        <SystemInfoCard label="Storage Used" value={`${Math.round((JSON.stringify(localStorage).length * 2) / 1024)} KB`} icon={Database} />
+        <SystemInfoCard label="Data Storage" value="Browser local storage (prototype)" icon={Database} />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <Card className="p-4 rounded-xl">
-          <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Quick Actions</p>
-          <div className="space-y-2">
-            <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => { createBackup("Manual backup from Settings"); }}>
-              <Database className="h-4 w-4 mr-2" /> Create Backup Now
-            </Button>
-            <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => setPage("backup")}>
-              <Database className="h-4 w-4 mr-2" /> Open Backup & Restore
-            </Button>
-            <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => setPage("activity-log")}>
-              <Database className="h-4 w-4 mr-2" /> View Activity Log
-            </Button>
-            <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => setPage("roles")}>
-              <Shield className="h-4 w-4 mr-2" /> Manage Roles & Permissions
-            </Button>
-          </div>
-        </Card>
-        <Card className="p-4 rounded-xl">
-          <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Health Check</p>
-          <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              <p className="text-sm font-semibold text-emerald-800">All systems operational</p>
-            </div>
-            <p className="text-xs text-emerald-700 mt-1">Last health check: 2 minutes ago · Uptime: 99.98%</p>
-          </div>
-          <div className="mt-3 space-y-1.5 text-xs">
-            <div className="flex justify-between"><span className="text-muted-foreground">Auth Service</span><span className="text-emerald-600">● Operational</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Database</span><span className="text-emerald-600">● Operational</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Backup Service</span><span className="text-emerald-600">● Operational</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Audit Logging</span><span className="text-emerald-600">● Operational</span></div>
-          </div>
-        </Card>
-      </div>
+      <Card className="p-4 rounded-xl">
+        <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Quick Actions</p>
+        <div className="space-y-2">
+          <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => setPage("activity-log")}>
+            <Database className="h-4 w-4 mr-2" /> View Activity Log
+          </Button>
+          <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => setPage("roles")}>
+            <Shield className="h-4 w-4 mr-2" /> Manage Roles & Permissions
+          </Button>
+        </div>
+      </Card>
     </div>
   );
 }

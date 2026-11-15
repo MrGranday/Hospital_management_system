@@ -19,8 +19,6 @@ import {
   Wallet,
   UserCog,
   FileBarChart,
-  MessageSquare,
-  Video,
   Settings,
   Search,
   Bell,
@@ -36,12 +34,10 @@ import {
   CheckCircle2,
   Info,
   AlertCircle,
-  Sparkles,
   ShoppingCart,
   RotateCcw,
   Droplet,
   History,
-  Database,
   Shield,
   Sun,
   Moon,
@@ -104,8 +100,6 @@ const NAV_GROUPS: NavGroup[] = [
       { key: "finance", label: "Finance", icon: Wallet, module: "finance" },
       { key: "hr", label: "Human Resources", icon: UserCog, module: "hr" },
       { key: "reports", label: "Reports", icon: FileBarChart, module: "reports" },
-      { key: "communications", label: "Communications", icon: MessageSquare, badge: 3, module: "communications" },
-      { key: "live-consultation", label: "Telemedicine", icon: Video, module: "telemedicine" },
     ],
   },
   {
@@ -114,7 +108,6 @@ const NAV_GROUPS: NavGroup[] = [
       { key: "settings", label: "Settings", icon: Settings, module: "settings" },
       { key: "roles", label: "Roles & Permissions", icon: Shield, module: "roles" },
       { key: "activity-log", label: "Activity Log", icon: History, module: "activity_log" },
-      { key: "backup", label: "Backup & Restore", icon: Database, module: "backup" },
     ],
   },
 ];
@@ -162,7 +155,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 }
 
 function DesktopSidebar() {
-  const { sidebarCollapsed, toggleSidebar, currentPage, setPage, pushToast, user } = useAppStore();
+  const { sidebarCollapsed, toggleSidebar, currentPage, setPage, user } = useAppStore();
   const role = user?.role;
   const filteredGroups = useMemo(() => {
     return NAV_GROUPS.map((g) => ({
@@ -217,24 +210,6 @@ function DesktopSidebar() {
           );
         })}
       </nav>
-
-      {/* Upgrade card */}
-      {!sidebarCollapsed && (
-        <div className="px-3 pb-3">
-          <div className="rounded-xl bg-gradient-to-br from-brand-600 to-brand-800 p-3.5 text-white shadow-blue-glow">
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="h-4 w-4 text-brand-200" />
-              <p className="text-xs font-semibold">AI Assistant</p>
-            </div>
-            <p className="text-[11px] text-white/80 leading-relaxed mb-2.5">
-              Get clinical insights and draft notes 3× faster
-            </p>
-            <button className="w-full text-xs font-medium bg-white/15 hover:bg-white/25 transition-colors rounded-md py-1.5" onClick={() => pushToast({ title: "AI Assistant beta", description: "Coming soon — stay tuned!", variant: "info" })}>
-              Try Beta →
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Collapse toggle */}
       <button
