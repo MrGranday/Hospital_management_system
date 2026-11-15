@@ -10,9 +10,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "MediCore — Enterprise Hospital Management System",
+  title: "MediCore Hospital Management System",
   description:
-    "Premium, modern hospital management platform for clinicians, pharmacists, administrators and care teams. Built for high-volume care delivery.",
+    "Hospital management software for patient records, appointments, billing, pharmacy and inventory.",
   keywords: [
     "HMS",
     "Hospital Management System",
