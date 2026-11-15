@@ -169,7 +169,7 @@ const AVATAR_COLORS = [
   "oklch(0.62 0.18 320)",
 ];
 
-const pick = <T,>(arr: T[], i: number): T => arr[i % arr.length];
+const pick = <T,>(arr: T[], i: number): T => arr[i % arr.length]!;
 
 export const DEPARTMENTS = [
   "Cardiology",
@@ -1226,7 +1226,7 @@ function makeInitialBags(): BloodBag[] {
       donationDate: donation.toISOString().slice(0, 10),
       expiryDate: expiry.toISOString().slice(0, 10),
       batchNo: `BBT-${donation.getFullYear()}${String(donation.getMonth() + 1).padStart(2, "0")}${String(i + 1).padStart(2, "0")}`,
-      location: ["Cold Room 1", "Cold Room 2", "Freezer A"][i % 3],
+      location: ["Cold Room 1", "Cold Room 2", "Freezer A"][i % 3]!,
       status: isExpired ? "expired" : "available",
     });
   });

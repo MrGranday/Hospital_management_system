@@ -191,7 +191,7 @@ export default function Billing() {
                   <Td><span className="text-sm font-semibold tabular-nums">${inv.amount.toLocaleString()}</span></Td>
                   <Td><span className="text-sm tabular-nums text-emerald-600">${inv.paid.toLocaleString()}</span></Td>
                   <Td><span className="text-sm tabular-nums text-muted-foreground">${(inv.amount - inv.paid).toLocaleString()}</span></Td>
-                  <Td><StatusPill status={STATUS_INFO[inv.status].status}>{STATUS_INFO[inv.status].label}</StatusPill></Td>
+                  <Td><StatusPill status={STATUS_INFO[inv.status]?.status ?? "neutral"}>{STATUS_INFO[inv.status]?.label ?? inv.status}</StatusPill></Td>
                 </motion.tr>
               ))}
             </tbody>
@@ -233,7 +233,7 @@ function InvoiceDetailDrawer({ invoice, onClose, onVoid }: { invoice: UnifiedInv
 
 function InvoiceDetail({ invoice, onClose, onVoid }: { invoice: UnifiedInvoice; onClose: () => void; onVoid: (inv: UnifiedInvoice) => void }) {
   const { openModal, pushToast, logActivity } = useAppStore();
-  const status = STATUS_INFO[invoice.status];
+  const status = STATUS_INFO[invoice.status]!;
   const balance = invoice.amount - invoice.paid;
 
   const handlePrint = () => {

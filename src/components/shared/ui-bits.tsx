@@ -109,8 +109,8 @@ export function Sparkline({
         transition={{ duration: 0.8, ease: "easeOut" }}
       />
       <motion.circle
-        cx={points[points.length - 1].x}
-        cy={points[points.length - 1].y}
+        cx={points[points.length - 1]!.x}
+        cy={points[points.length - 1]!.y}
         r={2.5}
         fill={color}
         initial={{ scale: 0 }}

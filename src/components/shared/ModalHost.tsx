@@ -254,7 +254,7 @@ function POSModal({ onClose }: { onClose: () => void }) {
         <div className="lg:col-span-2 space-y-3">
           <div><Label className="text-xs uppercase text-muted-foreground">Customer</Label><Input value={customer} onChange={(e) => setCustomer(e.target.value)} placeholder="Walk-in Customer" className="h-9 mt-1" /></div>
           <div><Label className="text-xs uppercase text-muted-foreground">Payment Method</Label><div className="grid grid-cols-3 gap-1.5 mt-1">{(["Cash", "Card", "Insurance"] as const).map((m) => { const Icon = m === "Cash" ? Banknote : m === "Card" ? CreditCard : Shield; return <button key={m} onClick={() => setPayment(m)} className={cn("flex flex-col items-center gap-1 p-2 rounded-lg border text-xs font-medium", payment === m ? "border-brand-400 bg-brand-50 text-brand-700" : "border-border")}><Icon className="h-4 w-4" />{m}</button>; })}</div></div>
-          <div><Label className="text-xs uppercase text-muted-foreground">Cart ({cartItems.length})</Label><div className="mt-1 space-y-1.5 max-h-[200px] overflow-y-auto">{cartItems.length === 0 ? <div className="text-center py-8 text-xs text-muted-foreground"><ShoppingCart className="h-8 w-8 mx-auto mb-2 opacity-30" />Cart is empty</div> : cartItems.map((item) => (<div key={item.medicineId} className="flex items-center gap-2 p-2 rounded-lg bg-accent/40"><div className="flex-1 min-w-0"><p className="text-xs font-medium truncate">{item.name}</p><p className="text-[10px] text-muted-foreground">${item.price.toFixed(2)} × {item.qty}</p></div><div className="flex items-center gap-1"><button onClick={() => setCart((c) => { const n = { ...c }; if (n[item.medicineId] > 1) n[item.medicineId]--; else delete n[item.medicineId]; return n; })} className="w-6 h-6 rounded-md bg-card border flex items-center justify-center"><Minus className="h-3 w-3" /></button><span className="text-xs font-semibold w-6 text-center">{item.qty}</span><button onClick={() => setCart((c) => ({ ...c, [item.medicineId]: c[item.medicineId] + 1 }))} className="w-6 h-6 rounded-md bg-card border flex items-center justify-center"><Plus className="h-3 w-3" /></button><button onClick={() => setCart((c) => { const n = { ...c }; delete n[item.medicineId]; return n; })} className="w-6 h-6 rounded-md text-rose-600 flex items-center justify-center"><Trash2 className="h-3 w-3" /></button></div></div>))}</div></div>
+          <div><Label className="text-xs uppercase text-muted-foreground">Cart ({cartItems.length})</Label><div className="mt-1 space-y-1.5 max-h-[200px] overflow-y-auto">{cartItems.length === 0 ? <div className="text-center py-8 text-xs text-muted-foreground"><ShoppingCart className="h-8 w-8 mx-auto mb-2 opacity-30" />Cart is empty</div> : cartItems.map((item) => (<div key={item.medicineId} className="flex items-center gap-2 p-2 rounded-lg bg-accent/40"><div className="flex-1 min-w-0"><p className="text-xs font-medium truncate">{item.name}</p><p className="text-[10px] text-muted-foreground">${item.price.toFixed(2)} × {item.qty}</p></div><div className="flex items-center gap-1"><button onClick={() => setCart((c) => { const n = { ...c }; const current = n[item.medicineId] ?? 0; if (current > 1) n[item.medicineId] = current - 1; else delete n[item.medicineId]; return n; })} className="w-6 h-6 rounded-md bg-card border flex items-center justify-center"><Minus className="h-3 w-3" /></button><span className="text-xs font-semibold w-6 text-center">{item.qty}</span><button onClick={() => setCart((c) => ({ ...c, [item.medicineId]: (c[item.medicineId] ?? 0) + 1 }))} className="w-6 h-6 rounded-md bg-card border flex items-center justify-center"><Plus className="h-3 w-3" /></button><button onClick={() => setCart((c) => { const n = { ...c }; delete n[item.medicineId]; return n; })} className="w-6 h-6 rounded-md text-rose-600 flex items-center justify-center"><Trash2 className="h-3 w-3" /></button></div></div>))}</div></div>
           {cartItems.length > 0 && <div className="p-3 rounded-lg bg-accent/30 border space-y-1.5 text-xs"><div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="font-semibold">{money(subtotal)}</span></div><div className="flex justify-between"><span className="text-muted-foreground">Tax (8%)</span><span className="font-semibold">{money(tax)}</span></div><div className="h-px bg-border" /><div className="flex justify-between"><span className="font-semibold">Total</span><span className="font-bold text-base">{money(total)}</span></div></div>}
         </div>
       </div>
@@ -268,7 +268,7 @@ function ReturnModal({ onClose }: { onClose: () => void }) {
   const [medicine, setMedicine] = useState("");
   const [qty, setQty] = useState("1");
   const [reason, setReason] = useState("Expired");
-  const [supplier, setSupplier] = useState(SUPPLIERS[0]);
+  const [supplier, setSupplier] = useState(SUPPLIERS[0]!);
   const [returnType, setReturnType] = useState<"supplier" | "customer">("supplier");
   const [selectedSaleId, setSelectedSaleId] = useState("");
 
@@ -703,7 +703,7 @@ function LabResultModal({ onClose }: { onClose: () => void }) {
     if (!num || !range) return "normal";
     const m = range.match(/(\d+\.?\d*)\s*[-–]\s*(\d+\.?\d*)/);
     if (!m) return "normal";
-    const lo = parseFloat(m[1]); const hi = parseFloat(m[2]);
+    const lo = parseFloat(m[1]!); const hi = parseFloat(m[2]!);
     if (num > hi) return "high";
     if (num < lo) return "low";
     return "normal";
@@ -876,7 +876,7 @@ function PurchaseOrderModal({ onClose }: { onClose: () => void }) {
                   </div>
                   <div className="col-span-3 md:col-span-1 text-right">
                     <Label className="text-[10px] uppercase">Total</Label>
-                    <p className="text-sm font-semibold tabular-nums mt-1">{money(lineTotals[idx])}</p>
+                    <p className="text-sm font-semibold tabular-nums mt-1">{money(lineTotals[idx] ?? 0)}</p>
                   </div>
                   <div className="col-span-1 text-right">
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-rose-600 hover:text-rose-700" onClick={() => removeItem(idx)} disabled={items.length === 1}>
@@ -1292,7 +1292,7 @@ function TransfusionModal({ onClose }: { onClose: () => void }) {
     "AB-": ["AB-", "AB+"],
     "AB+": ["AB+"],
   };
-  const isCompatible = patient ? compatibilityMap[requiredBloodType].includes(patient.bloodType ?? "") : false;
+  const isCompatible = patient ? (compatibilityMap[requiredBloodType] ?? []).includes(patient.bloodType ?? "") : false;
 
   const availableBags = bloodBags.filter((b) => b.status === "available" && b.bloodType === requiredBloodType && b.component === component);
 
@@ -1482,7 +1482,7 @@ function NewAppointmentModal({ onClose }: { onClose: () => void }) {
     const p = allPatients.find((x) => x.id === patient);
     if (!p) { pushToast({ title: "Select patient", variant: "warning" }); return; }
     if (!date || !time) { pushToast({ title: "Date and time are required", variant: "warning" }); return; }
-    const doc = DOCTORS.find((d) => d.id === doctor) || DOCTORS[0];
+    const doc = DOCTORS.find((d) => d.id === doctor) ?? DOCTORS[0]!;
     addAppointment({ patientId: p.id, patientName: p.name, doctorId: doc.id, doctorName: doc.name, department: doc.specialty, time, date, duration: 30, reason: reason || "General consultation", type });
     logActivity({ action: "Booked appointment", category: "patient", details: `${p.name} with ${doc.name} on ${date} at ${time}` });
     pushToast({ title: "Appointment Booked ✓", description: `${p.name} — ${doc.name} on ${date} ${time}`, variant: "success" });

@@ -529,18 +529,18 @@ const AVATAR_COLORS = [
 
 // Seed users (extended)
 const SEED_USERS: SystemUserRecord[] = [
-  { id: "u1", name: "James Whitfield", email: "j.whitfield@medicore.io", role: "admin", status: "active", lastActive: "5 min ago", twoFactor: true, avatarColor: AVATAR_COLORS[0], department: "Administration" },
-  { id: "u2", name: "Dr. Sarah Chen", email: "s.chen@medicore.io", role: "doctor", status: "active", lastActive: "2 min ago", twoFactor: true, avatarColor: AVATAR_COLORS[1], department: "Cardiology" },
-  { id: "u3", name: "Olivia Brown", email: "o.brown@medicore.io", role: "nurse", status: "active", lastActive: "12 min ago", twoFactor: false, avatarColor: AVATAR_COLORS[2], department: "ICU" },
-  { id: "u4", name: "Emma Wilson", email: "e.wilson@medicore.io", role: "receptionist", status: "active", lastActive: "Just now", twoFactor: false, avatarColor: AVATAR_COLORS[3], department: "Front Desk" },
-  { id: "u5", name: "David Kim", email: "d.kim@medicore.io", role: "pharmacy_manager", status: "active", lastActive: "8 min ago", twoFactor: true, avatarColor: AVATAR_COLORS[4], department: "Pharmacy" },
-  { id: "u6", name: "Marcus Lee", email: "m.lee@medicore.io", role: "lab_staff", status: "active", lastActive: "20 min ago", twoFactor: false, avatarColor: AVATAR_COLORS[5], department: "Laboratory" },
-  { id: "u7", name: "Dr. Aisha Patel", email: "a.patel@medicore.io", role: "radiologist", status: "active", lastActive: "1 hr ago", twoFactor: true, avatarColor: AVATAR_COLORS[6], department: "Radiology" },
-  { id: "u8", name: "Robert Garcia", email: "r.garcia@medicore.io", role: "accountant", status: "active", lastActive: "3 hr ago", twoFactor: true, avatarColor: AVATAR_COLORS[7], department: "Finance" },
-  { id: "u9", name: "Linda Martinez", email: "l.martinez@medicore.io", role: "inventory_staff", status: "active", lastActive: "1 hr ago", twoFactor: false, avatarColor: AVATAR_COLORS[0], department: "Inventory" },
-  { id: "u10", name: "Dr. Hassan Ali", email: "h.ali@medicore.io", role: "dentist", status: "active", lastActive: "Just now", twoFactor: true, avatarColor: AVATAR_COLORS[4], department: "Dental" },
-  { id: "u11", name: "Nadia Petrova", email: "n.petrova@medicore.io", role: "pharmacist", status: "active", lastActive: "30 min ago", twoFactor: false, avatarColor: AVATAR_COLORS[5], department: "Pharmacy" },
-  { id: "u12", name: "Carlos Reyes", email: "c.reyes@medicore.io", role: "storekeeper", status: "active", lastActive: "15 min ago", twoFactor: false, avatarColor: AVATAR_COLORS[2], department: "Warehouse" },
+  { id: "u1", name: "James Whitfield", email: "j.whitfield@medicore.io", role: "admin", status: "active", lastActive: "5 min ago", twoFactor: true, avatarColor: AVATAR_COLORS[0]!, department: "Administration" },
+  { id: "u2", name: "Dr. Sarah Chen", email: "s.chen@medicore.io", role: "doctor", status: "active", lastActive: "2 min ago", twoFactor: true, avatarColor: AVATAR_COLORS[1]!, department: "Cardiology" },
+  { id: "u3", name: "Olivia Brown", email: "o.brown@medicore.io", role: "nurse", status: "active", lastActive: "12 min ago", twoFactor: false, avatarColor: AVATAR_COLORS[2]!, department: "ICU" },
+  { id: "u4", name: "Emma Wilson", email: "e.wilson@medicore.io", role: "receptionist", status: "active", lastActive: "Just now", twoFactor: false, avatarColor: AVATAR_COLORS[3]!, department: "Front Desk" },
+  { id: "u5", name: "David Kim", email: "d.kim@medicore.io", role: "pharmacy_manager", status: "active", lastActive: "8 min ago", twoFactor: true, avatarColor: AVATAR_COLORS[4]!, department: "Pharmacy" },
+  { id: "u6", name: "Marcus Lee", email: "m.lee@medicore.io", role: "lab_staff", status: "active", lastActive: "20 min ago", twoFactor: false, avatarColor: AVATAR_COLORS[5]!, department: "Laboratory" },
+  { id: "u7", name: "Dr. Aisha Patel", email: "a.patel@medicore.io", role: "radiologist", status: "active", lastActive: "1 hr ago", twoFactor: true, avatarColor: AVATAR_COLORS[6]!, department: "Radiology" },
+  { id: "u8", name: "Robert Garcia", email: "r.garcia@medicore.io", role: "accountant", status: "active", lastActive: "3 hr ago", twoFactor: true, avatarColor: AVATAR_COLORS[7]!, department: "Finance" },
+  { id: "u9", name: "Linda Martinez", email: "l.martinez@medicore.io", role: "inventory_staff", status: "active", lastActive: "1 hr ago", twoFactor: false, avatarColor: AVATAR_COLORS[0]!, department: "Inventory" },
+  { id: "u10", name: "Dr. Hassan Ali", email: "h.ali@medicore.io", role: "dentist", status: "active", lastActive: "Just now", twoFactor: true, avatarColor: AVATAR_COLORS[4]!, department: "Dental" },
+  { id: "u11", name: "Nadia Petrova", email: "n.petrova@medicore.io", role: "pharmacist", status: "active", lastActive: "30 min ago", twoFactor: false, avatarColor: AVATAR_COLORS[5]!, department: "Pharmacy" },
+  { id: "u12", name: "Carlos Reyes", email: "c.reyes@medicore.io", role: "storekeeper", status: "active", lastActive: "15 min ago", twoFactor: false, avatarColor: AVATAR_COLORS[2]!, department: "Warehouse" },
 ];
 
 // Seed medicine batches from MEDICINES (one batch each, with current stock)
@@ -857,7 +857,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       ...u,
       id: uid("usr"),
       lastActive: "Never",
-      avatarColor: u.avatarColor ?? AVATAR_COLORS[userSeq % AVATAR_COLORS.length],
+      avatarColor: u.avatarColor ?? AVATAR_COLORS[userSeq % AVATAR_COLORS.length]!,
     };
     set((s) => ({ users: [newUser, ...s.users] }));
     get().logActivity({ action: "Created user", category: "user", module: "users", targetRecordId: newUser.id, targetRecordType: "User", details: `Created ${newUser.name} (${newUser.role})`, success: true });
@@ -999,7 +999,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       allergies: p.allergies ?? [],
       chronicConditions: p.chronicConditions ?? [],
       balance: 0,
-      avatarColor: AVATAR_COLORS[patSeq % AVATAR_COLORS.length],
+      avatarColor: AVATAR_COLORS[patSeq % AVATAR_COLORS.length]!,
       ...p,
     } as Patient;
     set((s) => ({ livePatients: [newP, ...s.livePatients] }));
@@ -1025,7 +1025,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       id: uid("staff"),
       joinedOn: new Date().toISOString().slice(0, 10),
       status: "active",
-      avatarColor: AVATAR_COLORS[staffSeq % AVATAR_COLORS.length],
+      avatarColor: AVATAR_COLORS[staffSeq % AVATAR_COLORS.length]!,
     };
     set((st) => ({ liveStaff: [newS, ...st.liveStaff] }));
     get().logActivity({ action: "Added staff member", category: "user", module: "hr", targetRecordId: newS.id, targetRecordType: "Staff", details: `${newS.name} (${newS.role})`, success: true });
@@ -1521,7 +1521,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       id: uid("bd"),
       totalDonations: d.totalDonations ?? 0,
       status: d.status ?? "eligible",
-      avatarColor: d.avatarColor ?? AVATAR_COLORS[donorSeq % AVATAR_COLORS.length],
+      avatarColor: d.avatarColor ?? AVATAR_COLORS[donorSeq % AVATAR_COLORS.length]!,
     };
     set((s) => ({ bloodDonors: [newD, ...s.bloodDonors] }));
     get().logActivity({ action: "Registered blood donor", category: "blood_bank", module: "blood_bank", targetRecordId: newD.id, targetRecordType: "BloodDonor", details: `${newD.name} (${newD.bloodType})`, success: true });

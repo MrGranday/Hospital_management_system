@@ -154,7 +154,7 @@ export default function Lab() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <p className="font-mono text-xs text-brand-600 font-medium">{order.number}</p>
-                      <StatusPill status={PRIORITY_INFO[order.priority].status}>{PRIORITY_INFO[order.priority].label}</StatusPill>
+                      <StatusPill status={PRIORITY_INFO[order.priority]?.status ?? "neutral"}>{PRIORITY_INFO[order.priority]?.label ?? order.priority}</StatusPill>
                       {order.resultReady && (
                         <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">
                           Result Ready
@@ -170,7 +170,7 @@ export default function Lab() {
                     <p className="text-[11px] text-muted-foreground mt-1">Ordered by {order.orderedBy} at {(order as any).orderedAt ?? (order as any).date}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1.5 shrink-0">
-                    <StatusPill status={STATUS_INFO[order.status].status}>{STATUS_INFO[order.status].label}</StatusPill>
+                    <StatusPill status={STATUS_INFO[order.status]?.status ?? "neutral"}>{STATUS_INFO[order.status]?.label ?? order.status}</StatusPill>
                     <ColorAvatar name={order.patientName} color="oklch(0.62 0.14 200)" size="sm" />
                   </div>
                 </motion.button>
@@ -215,8 +215,8 @@ function LabOrderDrawer({ order, onClose }: { order: UnifiedLabOrder | null; onC
 function LabOrderDetail({ order, onClose }: { order: UnifiedLabOrder; onClose: () => void }) {
   const { openModal, updateLabOrderStatus, pushToast, logActivity } = useAppStore();
   const TypeIcon = order.type === "pathology" ? FlaskConical : Radio;
-  const statusInfo = STATUS_INFO[order.status];
-  const priorityInfo = PRIORITY_INFO[order.priority];
+  const statusInfo = STATUS_INFO[order.status]!;
+  const priorityInfo = PRIORITY_INFO[order.priority]!;
 
   const isLive = (order as any).id?.startsWith("lab-");
 
@@ -224,7 +224,7 @@ function LabOrderDetail({ order, onClose }: { order: UnifiedLabOrder; onClose: (
     if (isLive) {
       updateLabOrderStatus(order.id, next);
       logActivity({ action: `Lab status → ${next}`, category: "clinical", details: `${order.number} — ${order.patientName}` });
-      pushToast({ title: `Status: ${STATUS_INFO[next].label}`, description: order.number, variant: "success" });
+      pushToast({ title: `Status: ${STATUS_INFO[next]!.label}`, description: order.number, variant: "success" });
     } else {
       pushToast({ title: "Demo data — cannot mutate", description: "Place a new lab order to test the workflow.", variant: "info" });
     }

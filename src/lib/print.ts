@@ -116,7 +116,9 @@ export function printLabReport(r: PrintableLabReport) {
 // CSV export helper
 export function exportToCsv(filename: string, rows: Record<string, any>[]) {
   if (!rows.length) return;
-  const headers = Object.keys(rows[0]);
+  const firstRow = rows[0];
+  if (!firstRow) return;
+  const headers = Object.keys(firstRow);
   const escape = (v: any) => {
     const s = v === null || v === undefined ? "" : String(v);
     return `"${s.replace(/"/g, '""')}"`;

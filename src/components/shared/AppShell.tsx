@@ -41,7 +41,6 @@ import {
   Shield,
   Sun,
   Moon,
-  Monitor,
   Package,
 } from "lucide-react";
 import { useAppStore, type PageKey } from "@/store/app-store";
@@ -52,7 +51,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { can, toExtendedRole, type Module } from "@/lib/rbac";
-import { useTheme, type ThemeMode } from "@/lib/theme";
+import { useTheme } from "@/lib/theme";
 
 interface NavItem {
   key: PageKey;
@@ -695,80 +694,19 @@ function CommandPalette() {
 }
 
 // ============================================================================
-// Theme toggle button — cycles Light → Dark → System
+// Theme toggle button: light / dark
 // ============================================================================
 function ThemeToggle() {
   const { prefs, update } = useTheme();
-  const [open, setOpen] = useState(false);
-  const cycle: ThemeMode[] = ["light", "dark", "system"];
-  const next = cycle[(cycle.indexOf(prefs.mode) + 1) % cycle.length];
-  const Icon = prefs.mode === "light" ? Sun : prefs.mode === "dark" ? Moon : Monitor;
+  const isDark = prefs.mode === "dark";
   return (
-    <div className="relative">
-      <button
-        onClick={() => update({ mode: next })}
-        onContextMenu={(e) => { e.preventDefault(); setOpen((o) => !o); }}
-        className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-        title={`Theme: ${prefs.mode} (click to cycle, right-click for menu)`}
-      >
-        <Icon className="h-[18px] w-[18px]" />
-      </button>
-      <AnimatePresence>
-        {open && (
-          <>
-            <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-            <motion.div
-              initial={{ opacity: 0, y: -8, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -8, scale: 0.96 }}
-              transition={{ duration: 0.15 }}
-              className="absolute right-0 mt-2 w-56 bg-card rounded-xl shadow-premium border border-border overflow-hidden z-40 p-1.5"
-            >
-              <p className="px-2.5 py-1.5 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Theme Mode</p>
-              {([
-                { mode: "light", label: "Light", icon: Sun },
-                { mode: "dark", label: "Dark", icon: Moon },
-                { mode: "system", label: "System", icon: Monitor },
-              ] as const).map((opt) => (
-                <button
-                  key={opt.mode}
-                  onClick={() => { update({ mode: opt.mode }); setOpen(false); }}
-                  className={cn(
-                    "w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm hover:bg-accent transition-colors",
-                    prefs.mode === opt.mode && "bg-brand-50 text-brand-700",
-                  )}
-                >
-                  <opt.icon className="h-4 w-4" />
-                  {opt.label}
-                  {prefs.mode === opt.mode && <CheckCircle2 className="h-3.5 w-3.5 ml-auto" />}
-                </button>
-              ))}
-              <div className="my-1 h-px bg-border" />
-              <p className="px-2.5 py-1.5 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Accent Color</p>
-              <div className="grid grid-cols-8 gap-1 px-2 pb-1.5">
-                {([
-                  { key: "blue", color: "oklch(0.608 0.180 245)" },
-                  { key: "emerald", color: "oklch(0.62 0.150 155)" },
-                  { key: "violet", color: "oklch(0.58 0.150 290)" },
-                  { key: "rose", color: "oklch(0.65 0.200 15)" },
-                  { key: "amber", color: "oklch(0.72 0.160 75)" },
-                  { key: "cyan", color: "oklch(0.62 0.150 200)" },
-                  { key: "teal", color: "oklch(0.60 0.130 180)" },
-                  { key: "indigo", color: "oklch(0.55 0.180 265)" },
-                ] as const).map((a) => (
-                  <button
-                    key={a.key}
-                    onClick={() => update({ accent: a.key })}
-                    className={cn("w-5 h-5 rounded-full border-2 transition-all", prefs.accent === a.key ? "scale-110 border-foreground" : "border-transparent hover:scale-105")}
-                    style={{ backgroundColor: a.color }}
-                    title={a.key}
-                  />
-                ))}
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-    </div>
+    <button
+      onClick={() => update({ mode: isDark ? "light" : "dark" })}
+      className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+      aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+      title={isDark ? "Switch to light theme" : "Switch to dark theme"}
+    >
+      {isDark ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
+    </button>
   );
 }
