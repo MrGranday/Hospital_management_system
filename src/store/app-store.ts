@@ -16,13 +16,13 @@
 // ============================================================================
 
 import { create } from "zustand";
-import type { User, Role, Patient, Appointment, Medicine } from "@/lib/data";
+import type { User, Role, Patient, Appointment, Medicine } from "@/_legacy/mock-data/data";
 import {
   USERS_BY_ROLE, CURRENT_USER, PATIENTS, DOCTORS, MEDICINES, APPOINTMENTS,
   SUPPLIERS, BLOOD_DONORS, BLOOD_BAGS_SEED, DEFAULT_HOSPITAL,
   type Supplier, type BloodBag, type BloodDonor, type BloodType, type BloodComponent,
   type HospitalProfile,
-} from "@/lib/data";
+} from "@/_legacy/mock-data/data";
 
 // Re-export types that consumers need
 export type { Supplier, BloodBag, BloodDonor, BloodType, BloodComponent, HospitalProfile };
@@ -1863,7 +1863,7 @@ function removeLSKey(key: string) {
 // ============================================================================
 // Re-export blood-bank constants from data.ts so consumers can import from store
 // ============================================================================
-import { BLOOD_COMPONENTS as BLOOD_COMPONENTS_INFO, BLOOD_COMPATIBILITY as BLOOD_COMPATIBILITY_MAP } from "@/lib/data";
+import { BLOOD_COMPONENTS as BLOOD_COMPONENTS_INFO, BLOOD_COMPATIBILITY as BLOOD_COMPATIBILITY_MAP } from "@/_legacy/mock-data/data";
 
 // ============================================================================
 // Helper selectors

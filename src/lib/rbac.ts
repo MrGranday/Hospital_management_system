@@ -6,7 +6,7 @@
 // it cannot drift between modules.
 // ============================================================================
 
-import type { Role } from "@/lib/data";
+import type { Role } from "@/_legacy/mock-data/data";
 
 // Extended healthcare roles
 export type ExtendedRole =
