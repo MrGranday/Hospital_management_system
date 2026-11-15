@@ -18,7 +18,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EMERGENCY_CASES, type EmergencyCase } from "@/lib/data";
-import { KpiCard, StatusPill, ColorAvatar } from "@/components/shell/ui-bits";
+import { KpiCard, StatusPill, ColorAvatar } from "@/components/shared/ui-bits";
 import { useAppStore } from "@/store/app-store";
 
 const TRIAGE_LEVELS = [

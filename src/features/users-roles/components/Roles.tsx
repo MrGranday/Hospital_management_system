@@ -27,7 +27,7 @@ import {
   ROLE_LABELS as RBAC_ROLE_LABELS, MODULE_LABELS, ACTION_LABELS,
   can, type ExtendedRole, type Module, type Action,
 } from "@/lib/rbac";
-import { StatusPill, ColorAvatar } from "@/components/shell/ui-bits";
+import { StatusPill, ColorAvatar } from "@/components/shared/ui-bits";
 import { exportToCsv } from "@/lib/print";
 
 const AVATAR_COLORS = [

@@ -19,7 +19,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useAppStore, type ActivityCategory } from "@/store/app-store";
-import { KpiCard, StatusPill, ColorAvatar } from "@/components/shell/ui-bits";
+import { KpiCard, StatusPill, ColorAvatar } from "@/components/shared/ui-bits";
 import { exportToCsv } from "@/lib/print";
 import { can } from "@/lib/rbac";
 

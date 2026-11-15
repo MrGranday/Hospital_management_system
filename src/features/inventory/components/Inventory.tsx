@@ -26,7 +26,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { INVENTORY_ITEMS, MEDICINES, type InventoryItem, type Medicine } from "@/lib/data";
-import { KpiCard, StatusPill } from "@/components/shell/ui-bits";
+import { KpiCard, StatusPill } from "@/components/shared/ui-bits";
 import { useAppStore } from "@/store/app-store";
 import { exportToCsv } from "@/lib/print";
 import { can } from "@/lib/rbac";

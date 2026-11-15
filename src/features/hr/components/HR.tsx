@@ -23,7 +23,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import { STAFF_DIRECTORY, ATTENDANCE_TREND, ROLE_LABELS, type StaffMember } from "@/lib/data";
-import { KpiCard, StatusPill, ColorAvatar } from "@/components/shell/ui-bits";
+import { KpiCard, StatusPill, ColorAvatar } from "@/components/shared/ui-bits";
 import { useAppStore } from "@/store/app-store";
 import { exportToCsv } from "@/lib/print";
 

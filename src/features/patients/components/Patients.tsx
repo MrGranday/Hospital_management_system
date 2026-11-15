@@ -31,7 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PATIENTS, type Patient } from "@/lib/data";
-import { ColorAvatar, StatusPill } from "@/components/shell/ui-bits";
+import { ColorAvatar, StatusPill } from "@/components/shared/ui-bits";
 import { useAppStore } from "@/store/app-store";
 import { exportToCsv } from "@/lib/print";
 import { cn } from "@/lib/utils";

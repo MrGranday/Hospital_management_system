@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { IMAGING_STUDIES, type ImagingStudy } from "@/lib/data";
-import { KpiCard, StatusPill, ColorAvatar } from "@/components/shell/ui-bits";
+import { KpiCard, StatusPill, ColorAvatar } from "@/components/shared/ui-bits";
 import { useAppStore } from "@/store/app-store";
 import { printDoc } from "@/lib/print";
 

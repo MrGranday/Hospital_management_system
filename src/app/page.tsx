@@ -1,8 +1,8 @@
 "use client";
 
 import { useAppStore, type PageKey } from "@/store/app-store";
-import { AppShell } from "@/components/shell/AppShell";
-import LoginScreen from "@/components/shell/LoginScreen";
+import { AppShell } from "@/components/shared/AppShell";
+import LoginScreen from "@/features/auth/components/LoginScreen";
 import Dashboard from "@/features/dashboard/components/Dashboard";
 import Patients from "@/features/patients/components/Patients";
 import OPD from "@/features/opd/components/OPD";

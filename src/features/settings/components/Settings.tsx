@@ -40,7 +40,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAppStore } from "@/store/app-store";
 import { SYSTEM_USERS, ROLE_LABELS, type SystemUser } from "@/lib/data";
-import { StatusPill, ColorAvatar } from "@/components/shell/ui-bits";
+import { StatusPill, ColorAvatar } from "@/components/shared/ui-bits";
 import { useTheme, ACCENTS, type ThemeMode, type AccentKey } from "@/lib/theme";
 import { can } from "@/lib/rbac";
 import { ALL_ROLES, ROLE_LABELS as RBAC_ROLE_LABELS, type ExtendedRole } from "@/lib/rbac";

@@ -34,7 +34,7 @@ import {
 } from "recharts";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { KpiCard, SectionHeader, StatusPill, ColorAvatar } from "@/components/shell/ui-bits";
+import { KpiCard, SectionHeader, StatusPill, ColorAvatar } from "@/components/shared/ui-bits";
 import {
   DASHBOARD_STATS,
   REVENUE_TREND,

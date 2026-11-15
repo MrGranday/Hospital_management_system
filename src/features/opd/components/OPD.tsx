@@ -27,7 +27,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { OPD_VISITS, type OpdVisit } from "@/lib/data";
-import { ColorAvatar, StatusPill, KpiCard } from "@/components/shell/ui-bits";
+import { ColorAvatar, StatusPill, KpiCard } from "@/components/shared/ui-bits";
 import { useAppStore } from "@/store/app-store";
 import { cn } from "@/lib/utils";
 

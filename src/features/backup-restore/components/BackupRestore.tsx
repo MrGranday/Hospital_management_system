@@ -25,7 +25,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { useAppStore, type BackupRecord } from "@/store/app-store";
-import { KpiCard, StatusPill } from "@/components/shell/ui-bits";
+import { KpiCard, StatusPill } from "@/components/shared/ui-bits";
 import { formatBytes } from "@/lib/storage";
 import { can } from "@/lib/rbac";
 import { toast } from "@/hooks/use-toast";

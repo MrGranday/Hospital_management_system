@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { INVOICES, type Invoice } from "@/lib/data";
-import { ColorAvatar, KpiCard, StatusPill } from "@/components/shell/ui-bits";
+import { ColorAvatar, KpiCard, StatusPill } from "@/components/shared/ui-bits";
 import { useAppStore, type LiveInvoice } from "@/store/app-store";
 import { printInvoice, exportToCsv } from "@/lib/print";
 

@@ -23,7 +23,7 @@ import {
   BLOOD_TYPES, BLOOD_COMPONENTS, BLOOD_COMPATIBILITY,
   type BloodType, type BloodComponent, type BloodBag, type BloodDonor,
 } from "@/lib/data";
-import { KpiCard, StatusPill, ColorAvatar } from "@/components/shell/ui-bits";
+import { KpiCard, StatusPill, ColorAvatar } from "@/components/shared/ui-bits";
 import { exportToCsv } from "@/lib/print";
 import { can } from "@/lib/rbac";
 

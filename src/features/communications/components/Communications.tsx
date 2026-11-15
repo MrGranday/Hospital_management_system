@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { MESSAGE_THREADS, type Message } from "@/lib/data";
-import { ColorAvatar, StatusPill } from "@/components/shell/ui-bits";
+import { ColorAvatar, StatusPill } from "@/components/shared/ui-bits";
 import { useAppStore } from "@/store/app-store";
 
 const CHANNELS = [

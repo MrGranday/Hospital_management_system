@@ -23,7 +23,7 @@ import {
   PieChart, Pie, Cell, Legend,
 } from "recharts";
 import { EXPENSES, EXPENSE_BY_CATEGORY, PROFIT_LOSS, type ExpenseRecord } from "@/lib/data";
-import { KpiCard, StatusPill } from "@/components/shell/ui-bits";
+import { KpiCard, StatusPill } from "@/components/shared/ui-bits";
 import { useAppStore } from "@/store/app-store";
 import { exportToCsv, printDoc } from "@/lib/print";
 

@@ -23,7 +23,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ColorAvatar, StatusPill } from "@/components/shell/ui-bits";
+import { ColorAvatar, StatusPill } from "@/components/shared/ui-bits";
 import { useAppStore } from "@/store/app-store";
 
 const UPCOMING_CONSULTATIONS = [
