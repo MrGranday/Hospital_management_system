@@ -30,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PATIENTS, type Patient } from "@/lib/data";
+import { PATIENTS, type Patient } from "@/_legacy/mock-data/data";
 import { ColorAvatar, StatusPill } from "@/components/shared/ui-bits";
 import { useAppStore } from "@/store/app-store";
 import { exportToCsv } from "@/lib/print";

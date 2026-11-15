@@ -25,7 +25,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useAppStore, type PurchaseOrder, type PurchaseReturn, type PurchaseOrderStatus, type PurchaseReturnStatus, type ReturnReason } from "@/store/app-store";
-import { MEDICINES, SUPPLIERS } from "@/lib/data";
+import { MEDICINES, SUPPLIERS } from "@/_legacy/mock-data/data";
 import { KpiCard, StatusPill, ColorAvatar } from "@/components/shared/ui-bits";
 import { exportToCsv } from "@/lib/print";
 import { can } from "@/lib/rbac";

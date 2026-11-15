@@ -37,7 +37,7 @@ import {
 import {
   MEDICINES, PRESCRIPTIONS, PHARMACY_SALES, PHARMACY_SALES_TREND,
   type Medicine, type Prescription, type PharmacySale,
-} from "@/lib/data";
+} from "@/_legacy/mock-data/data";
 import { KpiCard, StatusPill, ColorAvatar, Sparkline } from "@/components/shared/ui-bits";
 import { useAppStore } from "@/store/app-store";
 

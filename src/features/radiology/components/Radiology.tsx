@@ -19,7 +19,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { IMAGING_STUDIES, type ImagingStudy } from "@/lib/data";
+import { IMAGING_STUDIES, type ImagingStudy } from "@/_legacy/mock-data/data";
 import { KpiCard, StatusPill, ColorAvatar } from "@/components/shared/ui-bits";
 import { useAppStore } from "@/store/app-store";
 import { printDoc } from "@/lib/print";

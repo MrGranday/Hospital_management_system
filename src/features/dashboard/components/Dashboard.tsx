@@ -44,7 +44,7 @@ import {
   STAFF_SUMMARY,
   OPD_VISITS,
   KPI_SPARKLINES,
-} from "@/lib/data";
+} from "@/_legacy/mock-data/data";
 import { useAppStore } from "@/store/app-store";
 
 const fmt = (n: number, currency = "AFN") => `${currency} ${Math.round(n).toLocaleString()}`;

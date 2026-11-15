@@ -16,7 +16,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { NURSING_TASKS, type NursingTask } from "@/lib/data";
+import { NURSING_TASKS, type NursingTask } from "@/_legacy/mock-data/data";
 import { KpiCard, StatusPill, ColorAvatar } from "@/components/shared/ui-bits";
 import { useAppStore } from "@/store/app-store";
 

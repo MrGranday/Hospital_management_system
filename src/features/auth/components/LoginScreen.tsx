@@ -15,7 +15,7 @@ import {
   Fingerprint,
 } from "lucide-react";
 import { useAppStore } from "@/store/app-store";
-import { USERS_BY_ROLE, ROLE_LABELS, type Role } from "@/lib/data";
+import { USERS_BY_ROLE, ROLE_LABELS, type Role } from "@/_legacy/mock-data/data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

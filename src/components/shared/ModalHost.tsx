@@ -9,7 +9,7 @@ import {
   Syringe, Microscope, Smile, Send, Printer, DollarSign,
 } from "lucide-react";
 import { useAppStore } from "@/store/app-store";
-import { MEDICINES, PATIENTS, DOCTORS, DEPARTMENTS, type Patient } from "@/lib/data";
+import { MEDICINES, PATIENTS, DOCTORS, DEPARTMENTS, type Patient } from "@/_legacy/mock-data/data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

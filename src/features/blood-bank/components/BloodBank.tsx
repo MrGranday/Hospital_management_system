@@ -22,7 +22,7 @@ import { useAppStore, type BloodTransfusion } from "@/store/app-store";
 import {
   BLOOD_TYPES, BLOOD_COMPONENTS, BLOOD_COMPATIBILITY,
   type BloodType, type BloodComponent, type BloodBag, type BloodDonor,
-} from "@/lib/data";
+} from "@/_legacy/mock-data/data";
 import { KpiCard, StatusPill, ColorAvatar } from "@/components/shared/ui-bits";
 import { exportToCsv } from "@/lib/print";
 import { can } from "@/lib/rbac";

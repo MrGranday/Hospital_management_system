@@ -39,7 +39,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { useAppStore } from "@/store/app-store";
-import { SYSTEM_USERS, ROLE_LABELS, type SystemUser } from "@/lib/data";
+import { SYSTEM_USERS, ROLE_LABELS, type SystemUser } from "@/_legacy/mock-data/data";
 import { StatusPill, ColorAvatar } from "@/components/shared/ui-bits";
 import { useTheme, ACCENTS, type ThemeMode, type AccentKey } from "@/lib/theme";
 import { can } from "@/lib/rbac";

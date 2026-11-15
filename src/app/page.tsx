@@ -19,13 +19,13 @@ import Radiology from "@/features/radiology/components/Radiology";
 import Finance from "@/features/finance/components/Finance";
 import HR from "@/features/hr/components/HR";
 import Reports from "@/features/reports/components/Reports";
-import Communications from "@/features/communications/components/Communications";
-import Telemedicine from "@/features/telemedicine/components/Telemedicine";
+import Communications from "@/_legacy/communications/Communications";
+import Telemedicine from "@/_legacy/telemedicine/Telemedicine";
 import Settings from "@/features/settings/components/Settings";
 import Purchases from "@/features/purchases/components/Purchases";
 import BloodBank from "@/features/blood-bank/components/BloodBank";
 import ActivityLog from "@/features/audit-log/components/ActivityLog";
-import BackupRestore from "@/features/backup-restore/components/BackupRestore";
+import BackupRestore from "@/_legacy/backup-restore/BackupRestore";
 import Roles from "@/features/users-roles/components/Roles";
 import Suppliers from "@/features/suppliers/components/Suppliers";
 

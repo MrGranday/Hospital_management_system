@@ -25,7 +25,7 @@ import {
 import {
   DEPARTMENT_PERFORMANCE, PATIENT_SATISFACTION_TREND, READMISSION_RATE,
   AVG_WAIT_TIME, REVENUE_TREND,
-} from "@/lib/data";
+} from "@/_legacy/mock-data/data";
 import { KpiCard } from "@/components/shared/ui-bits";
 import { useAppStore } from "@/store/app-store";
 import { printDoc } from "@/lib/print";

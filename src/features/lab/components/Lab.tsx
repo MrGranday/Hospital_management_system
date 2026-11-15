@@ -18,7 +18,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { LAB_ORDERS, type LabOrder } from "@/lib/data";
+import { LAB_ORDERS, type LabOrder } from "@/_legacy/mock-data/data";
 import { ColorAvatar, KpiCard, StatusPill } from "@/components/shared/ui-bits";
 import { useAppStore, type LiveLabOrder } from "@/store/app-store";
 import { printLabReport } from "@/lib/print";

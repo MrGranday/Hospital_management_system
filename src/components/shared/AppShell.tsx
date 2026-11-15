@@ -49,7 +49,7 @@ import {
   Package,
 } from "lucide-react";
 import { useAppStore, type PageKey } from "@/store/app-store";
-import { NOTIFICATIONS, ROLE_LABELS, type Role } from "@/lib/data";
+import { NOTIFICATIONS, ROLE_LABELS, type Role } from "@/_legacy/mock-data/data";
 import { ModalHost } from "./ModalHost";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";

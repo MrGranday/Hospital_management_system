@@ -25,7 +25,7 @@ import {
 import {
   PATIENTS, PATIENT_TIMELINE, ACTIVE_MEDICATIONS,
   type ClinicalNote, type Encounter, type MedicationRecord, type Patient,
-} from "@/lib/data";
+} from "@/_legacy/mock-data/data";
 import { StatusPill, ColorAvatar } from "@/components/shared/ui-bits";
 import { useAppStore } from "@/store/app-store";
 import { printDoc } from "@/lib/print";

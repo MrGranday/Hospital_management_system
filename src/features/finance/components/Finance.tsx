@@ -22,7 +22,7 @@ import {
   BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
 } from "recharts";
-import { EXPENSES, EXPENSE_BY_CATEGORY, PROFIT_LOSS, type ExpenseRecord } from "@/lib/data";
+import { EXPENSES, EXPENSE_BY_CATEGORY, PROFIT_LOSS, type ExpenseRecord } from "@/_legacy/mock-data/data";
 import { KpiCard, StatusPill } from "@/components/shared/ui-bits";
 import { useAppStore } from "@/store/app-store";
 import { exportToCsv, printDoc } from "@/lib/print";

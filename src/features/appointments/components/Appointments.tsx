@@ -15,7 +15,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { APPOINTMENTS, DOCTORS, type Appointment } from "@/lib/data";
+import { APPOINTMENTS, DOCTORS, type Appointment } from "@/_legacy/mock-data/data";
 import { ColorAvatar, StatusPill } from "@/components/shared/ui-bits";
 import { useAppStore } from "@/store/app-store";
 
