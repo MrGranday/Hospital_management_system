@@ -8,6 +8,8 @@ export type AuthContext = {
   role: string;
   permissions: readonly string[];
   mustChangePassword: boolean;
+  username: string;
+  fullName: string;
 };
 
 function readString(value: unknown): string | null {
@@ -30,12 +32,22 @@ export async function getAuthContext(): Promise<AuthContext | null> {
 
   const metadata = user.app_metadata;
   const hospitalId = readString(metadata.hospital_id);
+  const username = readString(metadata.username) ?? user.email ?? "";
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username, full_name, must_change_password")
+    .eq("user_id", user.id)
+    .maybeSingle();
 
   return {
     userId: user.id,
     hospitalId: hospitalId === "" ? null : hospitalId,
     role: readString(metadata.role) ?? "",
     permissions: readPermissions(metadata.permissions),
-    mustChangePassword: metadata.must_change_password === true,
+    mustChangePassword:
+      profile?.must_change_password ?? metadata.must_change_password === true,
+    username: profile?.username ?? username,
+    fullName: profile?.full_name ?? username,
   };
 }

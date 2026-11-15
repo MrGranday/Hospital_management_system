@@ -52,6 +52,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { can, toExtendedRole, type Module } from "@/lib/rbac";
 import { useTheme } from "@/lib/theme";
+import { signOutAction } from "@/server/auth/actions";
 
 interface NavItem {
   key: PageKey;
@@ -372,6 +373,10 @@ function TopBar() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const handleSignOut = () => {
+    logout();
+    void signOutAction();
+  };
 
   // Cmd-K
   useEffect(() => {
@@ -578,7 +583,7 @@ function TopBar() {
                   <div className="p-1.5">
                     <ProfileMenuItem icon={Settings} label="Account settings" onClick={() => { setPage("settings"); setProfileOpen(false); }} />
                     <ProfileMenuItem icon={CircleDot} label="Status: Available" onClick={() => pushToast({ title: "Status (demo)", description: "Status would update here", variant: "info" })} />
-                    <ProfileMenuItem icon={LogOut} label="Sign out" danger onClick={logout} />
+                    <ProfileMenuItem icon={LogOut} label="Sign out" danger onClick={handleSignOut} />
                   </div>
                 </motion.div>
               </>

@@ -17,7 +17,7 @@
 import { create } from "zustand";
 import type { User, Role, Patient, Appointment, Medicine } from "@/_legacy/mock-data/data";
 import {
-  USERS_BY_ROLE, CURRENT_USER, PATIENTS, DOCTORS, MEDICINES, APPOINTMENTS,
+  CURRENT_USER, PATIENTS, DOCTORS, MEDICINES, APPOINTMENTS,
   SUPPLIERS, BLOOD_DONORS, BLOOD_BAGS_SEED, DEFAULT_HOSPITAL,
   type Supplier, type BloodBag, type BloodDonor, type BloodType, type BloodComponent,
   type HospitalProfile,
@@ -340,7 +340,7 @@ interface AppState {
   // ===== Auth / UI =====
   authenticated: boolean;
   user: User | null;
-  login: (role?: Role | ExtendedRole, username?: string) => { ok: boolean; error?: string };
+  setSessionUser: (user: User) => void;
   logout: () => void;
   failedLoginAttempts: number;
   currentPage: PageKey;
@@ -679,24 +679,15 @@ export const useAppStore = create<AppState>((set, get) => ({
   authenticated: false,
   user: null,
   failedLoginAttempts: 0,
-  login: (role = "doctor", username) => {
-    const extRole = toExtendedRole(role as ExtendedRole);
-    // Simulated auth — accepts demo accounts. Records login to activity log.
-    const userObj = (USERS_BY_ROLE as any)[role as string] ?? {
-      id: "u-demo",
-      name: username || `${extRole} user`,
-      role: role as Role,
-      email: `${extRole}@medicore.io`,
-    };
-    set({ authenticated: true, user: userObj, currentPage: "dashboard", failedLoginAttempts: 0 });
+  setSessionUser: (sessionUser) => {
+    set({ authenticated: true, user: sessionUser, currentPage: "dashboard", failedLoginAttempts: 0 });
     get().logActivity({
       action: "Signed in",
       category: "auth",
       module: "auth",
-      details: `${userObj.name} (${extRole}) signed in successfully`,
+      details: `${sessionUser.name} signed in`,
       success: true,
     });
-    return { ok: true };
   },
   logout: () => {
     const u = get().user;
