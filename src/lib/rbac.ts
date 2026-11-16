@@ -6,7 +6,7 @@
 // it cannot drift between modules.
 // ============================================================================
 
-import type { Role } from "@/lib/data";
+import type { Role } from "@/_legacy/mock-data/data";
 
 // Extended healthcare roles
 export type ExtendedRole =
@@ -78,11 +78,8 @@ export type Module =
   | "finance"
   | "hr"
   | "reports"
-  | "communications"
-  | "telemedicine"
   | "settings"
   | "activity_log"
-  | "backup"
   | "roles"
   | "users";
 
@@ -107,11 +104,8 @@ export const ALL_MODULES: Module[] = [
   "finance",
   "hr",
   "reports",
-  "communications",
-  "telemedicine",
   "settings",
   "activity_log",
-  "backup",
   "roles",
   "users",
 ];
@@ -128,8 +122,7 @@ export type Action =
   | "adjust"
   | "export"
   | "print"
-  | "manage"
-  | "restore";
+  | "manage";
 
 export const ALL_ACTIONS: Action[] = [
   "view",
@@ -143,7 +136,6 @@ export const ALL_ACTIONS: Action[] = [
   "export",
   "print",
   "manage",
-  "restore",
 ];
 
 export const ACTION_LABELS: Record<Action, string> = {
@@ -158,7 +150,6 @@ export const ACTION_LABELS: Record<Action, string> = {
   export: "Export",
   print: "Print",
   manage: "Manage",
-  restore: "Restore",
 };
 
 export const MODULE_LABELS: Record<Module, string> = {
@@ -182,11 +173,8 @@ export const MODULE_LABELS: Record<Module, string> = {
   finance: "Finance",
   hr: "Human Resources",
   reports: "Reports",
-  communications: "Communications",
-  telemedicine: "Telemedicine",
   settings: "System Settings",
   activity_log: "Activity Log",
-  backup: "Backup & Restore",
   roles: "Roles & Permissions",
   users: "User Accounts",
 };
@@ -200,7 +188,7 @@ export const MODULE_LABELS: Record<Module, string> = {
 type PermissionMatrix = Record<ExtendedRole, Partial<Record<Module, Action[]>>>;
 
 const A = (actions: Action[]): Action[] => actions;
-const FULL: Action[] = ["view", "create", "edit", "delete", "approve", "receive", "return", "adjust", "export", "print", "manage", "restore"];
+const FULL: Action[] = ["view", "create", "edit", "delete", "approve", "receive", "return", "adjust", "export", "print", "manage"];
 
 export const PERMISSIONS: PermissionMatrix = {
   super_admin: Object.fromEntries(ALL_MODULES.map((m) => [m, FULL])) as Record<Module, Action[]>,
@@ -226,11 +214,8 @@ export const PERMISSIONS: PermissionMatrix = {
     finance: FULL,
     hr: FULL,
     reports: FULL,
-    communications: FULL,
-    telemedicine: FULL,
     settings: FULL,
     activity_log: A(["view", "export", "manage"]),
-    backup: FULL,
     roles: FULL,
     users: FULL,
   },
@@ -256,11 +241,8 @@ export const PERMISSIONS: PermissionMatrix = {
     finance: A(["view"]),
     hr: A(["view"]),
     reports: A(["view", "export", "print"]),
-    communications: A(["view", "create"]),
-    telemedicine: A(["view", "create"]),
     settings: A(["view"]),
     activity_log: A(["view"]),
-    backup: A(["view"]),
     roles: A(["view"]),
     users: A(["view"]),
   },
@@ -280,8 +262,6 @@ export const PERMISSIONS: PermissionMatrix = {
     blood_bank: A(["view"]),
     purchases: A(["view"]),
     reports: A(["view", "print"]),
-    communications: A(["view", "create"]),
-    telemedicine: A(["view", "create"]),
     settings: A(["view"]),
     activity_log: A(["view"]),
   },
@@ -296,7 +276,6 @@ export const PERMISSIONS: PermissionMatrix = {
     suppliers: A(["view"]),
     billing: A(["view", "create"]),
     reports: A(["view", "export", "print"]),
-    communications: A(["view", "create"]),
     settings: A(["view"]),
     activity_log: A(["view"]),
   },
@@ -311,7 +290,6 @@ export const PERMISSIONS: PermissionMatrix = {
     suppliers: A(["view", "create", "edit"]),
     billing: A(["view", "create"]),
     reports: A(["view", "export", "print"]),
-    communications: A(["view", "create"]),
     settings: A(["view"]),
     activity_log: A(["view"]),
     users: A(["view"]),
@@ -326,7 +304,6 @@ export const PERMISSIONS: PermissionMatrix = {
     blood_bank: A(["view", "create", "edit", "adjust", "print"]),
     billing: A(["view"]),
     reports: A(["view", "export", "print"]),
-    communications: A(["view", "create"]),
     settings: A(["view"]),
     activity_log: A(["view"]),
   },
@@ -338,7 +315,6 @@ export const PERMISSIONS: PermissionMatrix = {
     opd: A(["view", "create"]),
     emergency: A(["view"]),
     billing: A(["view", "create", "print"]),
-    communications: A(["view", "create"]),
     reports: A(["view", "print"]),
     settings: A(["view"]),
     activity_log: A(["view"]),
@@ -397,7 +373,6 @@ export const PERMISSIONS: PermissionMatrix = {
     inventory: A(["view"]),
     blood_bank: A(["view", "create"]),
     billing: A(["view"]),
-    communications: A(["view", "create"]),
     reports: A(["view"]),
     settings: A(["view"]),
     activity_log: A(["view"]),
@@ -410,7 +385,6 @@ export const PERMISSIONS: PermissionMatrix = {
     lab: A(["view"]),
     inventory: A(["view"]),
     reports: A(["view", "export", "print"]),
-    communications: A(["view", "create"]),
     settings: A(["view"]),
     activity_log: A(["view"]),
   },
