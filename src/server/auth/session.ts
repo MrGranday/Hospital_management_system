@@ -1,5 +1,6 @@
 import "server-only";
 
+import { parseSessionClaims } from "@/lib/auth/claims";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 
 export type AuthContext = {
@@ -12,42 +13,28 @@ export type AuthContext = {
   fullName: string;
 };
 
-function readString(value: unknown): string | null {
-  return typeof value === "string" && value.length > 0 ? value : null;
-}
-
-function readPermissions(value: unknown): string[] {
-  if (!Array.isArray(value)) return [];
-  return value.filter((item): item is string => typeof item === "string");
-}
-
 export async function getAuthContext(): Promise<AuthContext | null> {
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+  const { data, error } = await supabase.auth.getClaims();
 
-  if (error || !user) return null;
+  if (error || !data) return null;
 
-  const metadata = user.app_metadata;
-  const hospitalId = readString(metadata.hospital_id);
-  const username = readString(metadata.username) ?? user.email ?? "";
+  const claims = parseSessionClaims(data.claims);
+  if (!claims) return null;
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("username, full_name, must_change_password")
-    .eq("user_id", user.id)
+    .eq("user_id", claims.userId)
     .maybeSingle();
 
   return {
-    userId: user.id,
-    hospitalId: hospitalId === "" ? null : hospitalId,
-    role: readString(metadata.role) ?? "",
-    permissions: readPermissions(metadata.permissions),
-    mustChangePassword:
-      profile?.must_change_password ?? metadata.must_change_password === true,
-    username: profile?.username ?? username,
-    fullName: profile?.full_name ?? username,
+    userId: claims.userId,
+    hospitalId: claims.hospitalId,
+    role: claims.role,
+    permissions: claims.permissions,
+    mustChangePassword: profile?.must_change_password ?? claims.mustChangePassword,
+    username: profile?.username ?? claims.username,
+    fullName: profile?.full_name ?? claims.username,
   };
 }

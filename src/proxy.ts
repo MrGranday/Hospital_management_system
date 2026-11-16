@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { parseSessionClaims } from "@/lib/auth/claims";
 import { getPublicEnv } from "@/lib/env";
 
 const PUBLIC_PATHS = new Set(["/login"]);
@@ -40,24 +41,22 @@ export default async function proxy(request: NextRequest): Promise<NextResponse>
     },
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const claims = parseSessionClaims(claimsData?.claims);
 
   const { pathname } = request.nextUrl;
 
-  if (!user) {
+  if (!claims) {
     return PUBLIC_PATHS.has(pathname) ? response : redirectTo(request, response, "/login");
   }
 
-  const mustChangePassword = user.app_metadata.must_change_password === true;
+  const { mustChangePassword } = claims;
 
   if (mustChangePassword && pathname !== "/change-password") {
     return redirectTo(request, response, "/change-password");
   }
 
-  const role = typeof user.app_metadata.role === "string" ? user.app_metadata.role : "";
-  const isSuperAdmin = role === "super_admin";
+  const isSuperAdmin = claims.role === "super_admin";
   const isPlatformPath = pathname === "/platform" || pathname.startsWith("/platform/");
 
   if (!mustChangePassword && isSuperAdmin && !isPlatformPath && pathname !== "/change-password") {
