@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   title: "Sign in",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function LoginPage() {
   const context = await getAuthContext();
   if (context) {

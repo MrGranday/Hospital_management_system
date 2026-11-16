@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   title: "Change password",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function ChangePasswordPage() {
   const context = await getAuthContext();
   if (!context) redirect("/login");

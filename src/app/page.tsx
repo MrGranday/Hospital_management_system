@@ -4,6 +4,9 @@ import { getAuthContext } from "@/server/auth/session";
 
 import HomeClient from "./home-client";
 
+export const dynamic = "force-dynamic";
+
+
 export default async function Home() {
   const context = await getAuthContext();
   if (!context) redirect("/login");

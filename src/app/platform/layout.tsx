@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { signOutAction } from "@/server/auth/actions";
 import { getSuperAdminContext } from "@/server/platform/guard";
 
+export const dynamic = "force-dynamic";
+
 export default async function PlatformLayout({
   children,
 }: {
