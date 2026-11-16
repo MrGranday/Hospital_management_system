@@ -40,6 +40,7 @@ import {
 } from "@/_legacy/mock-data/data";
 import { KpiCard, StatusPill, ColorAvatar, Sparkline } from "@/components/shared/ui-bits";
 import { useAppStore } from "@/store/app-store";
+import { daysUntil } from "@/lib/dates";
 
 const TABS = [
   { key: "inventory", label: "Inventory", icon: Boxes },
@@ -69,7 +70,7 @@ export default function Pharmacy() {
     const totalValue = MEDICINES.reduce((s, m) => s + m.stock * m.price, 0);
     const lowStock = MEDICINES.filter((m) => m.stock < m.minStock).length;
     const expiringSoon = MEDICINES.filter((m) => {
-      const days = (new Date(m.expiry).getTime() - Date.now()) / (1000 * 60 * 60 * 24);
+      const days = daysUntil(m.expiry);
       return days < 120;
     }).length;
     const pendingRx = PRESCRIPTIONS.filter((p) => p.status === "pending").length;
@@ -251,7 +252,7 @@ function MedicineCard({ med, delay }: { med: Medicine; delay: number }) {
   const liveStock = medicineStock[med.id] ?? med.stock;
   const stockPct = Math.min(100, (liveStock / (med.minStock * 4)) * 100);
   const isLow = liveStock < med.minStock;
-  const expiringSoon = (new Date(med.expiry).getTime() - Date.now()) / (1000 * 60 * 60 * 24) < 120;
+  const expiringSoon = daysUntil(med.expiry) < 120;
 
   return (
     <motion.div

@@ -576,7 +576,7 @@ function PurchaseReturnDetail({ ret, onClose }: { ret: PurchaseReturn; onClose: 
                   <AlertDialogTitle>Complete purchase return?</AlertDialogTitle>
                   <AlertDialogDescription>
                     This will permanently deduct {ret.items.reduce((s, i) => s + i.returnQty, 0)} units from inventory
-                    (using FEFO) and apply <strong>{money(ret.totalCredit)}</strong> credit to {ret.supplierName}'s account.
+                    (using FEFO) and apply <strong>{money(ret.totalCredit)}</strong> credit to {ret.supplierName}&apos;s account.
                     This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>

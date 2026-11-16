@@ -8,11 +8,8 @@ import {
   Shield,
   Bell,
   Palette,
-  Plug,
   Database,
-  Plus,
   Search,
-  Mail,
   MoreVertical,
   CheckCircle2,
   Lock,
@@ -22,7 +19,6 @@ import {
   Building2,
   Sun,
   Moon,
-  Monitor,
   Save,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -41,7 +37,7 @@ import {
 import { useAppStore } from "@/store/app-store";
 import { SYSTEM_USERS, ROLE_LABELS, type SystemUser } from "@/_legacy/mock-data/data";
 import { StatusPill, ColorAvatar } from "@/components/shared/ui-bits";
-import { useTheme, ACCENTS, type ThemeMode, type AccentKey } from "@/lib/theme";
+import { useTheme } from "@/lib/theme";
 import { can } from "@/lib/rbac";
 import { ALL_ROLES, ROLE_LABELS as RBAC_ROLE_LABELS, type ExtendedRole } from "@/lib/rbac";
 import { toast } from "@/hooks/use-toast";
@@ -58,19 +54,9 @@ const TABS = [
   { key: "notifications", label: "Notifications", icon: Bell },
   { key: "appearance", label: "Appearance", icon: Palette },
   { key: "hospital", label: "Hospital Profile", icon: Building2 },
-  { key: "integrations", label: "Integrations", icon: Plug },
   { key: "system", label: "System", icon: Database },
 ] as const;
 type TabKey = typeof TABS[number]["key"];
-
-const INTEGRATIONS = [
-  { name: "Twilio SMS", category: "Communication", status: "connected", icon: Bell, color: "text-red-600 bg-red-50" },
-  { name: "Stripe Payments", category: "Billing", status: "connected", icon: Shield, color: "text-violet-600 bg-violet-50" },
-  { name: "AWS S3 Storage", category: "Storage", status: "connected", icon: Database, color: "text-amber-600 bg-amber-50" },
-  { name: "Twilio Video", category: "Telemedicine", status: "connected", icon: Globe, color: "text-red-600 bg-red-50" },
-  { name: "SendGrid Email", category: "Communication", status: "disconnected", icon: Mail, color: "text-blue-600 bg-blue-50" },
-  { name: "HL7 FHIR API", category: "Interoperability", status: "connected", icon: Plug, color: "text-emerald-600 bg-emerald-50" },
-];
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState<TabKey>("appearance");
@@ -89,7 +75,7 @@ export default function Settings() {
           <span className="text-xs font-semibold text-brand-600 uppercase tracking-wider">System Configuration</span>
         </div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground mt-1">Manage users, security, integrations, appearance, and system preferences</p>
+        <p className="text-sm text-muted-foreground mt-1">Manage users, security, appearance, and system preferences</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -173,7 +159,6 @@ export default function Settings() {
             {activeTab === "notifications" && <NotificationsTab />}
             {activeTab === "appearance" && <AppearanceTab />}
             {activeTab === "hospital" && <HospitalTab />}
-            {activeTab === "integrations" && <IntegrationsTab />}
             {activeTab === "system" && <SystemTab />}
           </Card>
         </div>
@@ -232,7 +217,7 @@ function NotificationsTab() {
     <div className="space-y-5">
       <div>
         <h2 className="font-semibold text-foreground">Notification Preferences</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">Choose what triggers notifications and how they're delivered</p>
+        <p className="text-xs text-muted-foreground mt-0.5">Choose what triggers notifications and how they&apos;re delivered</p>
       </div>
       {items.map((it) => (
         <SecurityRow
@@ -250,94 +235,38 @@ function NotificationsTab() {
 
 function AppearanceTab() {
   const { prefs, update } = useTheme();
-  const { pushToast } = useAppStore();
+  const options = [
+    { mode: "light", label: "Light", icon: Sun },
+    { mode: "dark", label: "Dark", icon: Moon },
+  ] as const;
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div>
-        <h2 className="font-semibold text-foreground">Appearance & Theme</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">Customize the look and feel of MediCore. Preferences are persisted across sessions.</p>
-      </div>
-
-      <div>
-        <Label className="text-xs uppercase text-muted-foreground mb-2 block">Theme Mode</Label>
-        <div className="grid grid-cols-3 gap-3">
-          {([
-            { mode: "light", label: "Light", desc: "Bright, clean", icon: Sun },
-            { mode: "dark", label: "Dark", desc: "Easy on eyes", icon: Moon },
-            { mode: "system", label: "System", desc: "Follow OS", icon: Monitor },
-          ] as const).map((opt) => {
-            const isActive = prefs.mode === opt.mode;
-            return (
-              <div
-                key={opt.mode}
-                onClick={() => { update({ mode: opt.mode }); pushToast({ title: `Theme: ${opt.label}`, variant: "success" }); }}
-                className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${isActive ? "border-brand-400 bg-brand-50/50" : "border-border hover:border-brand-300"}`}
-              >
-                <opt.icon className="h-6 w-6 mb-2 text-brand-600" />
-                <p className="text-sm font-semibold">{opt.label}</p>
-                <p className="text-[11px] text-muted-foreground">{opt.desc}</p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div>
-        <Label className="text-xs uppercase text-muted-foreground mb-2 block">Accent Color</Label>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {ACCENTS.map((accent) => {
-            const isActive = prefs.accent === accent.key;
-            return (
-              <div
-                key={accent.key}
-                onClick={() => { update({ accent: accent.key }); pushToast({ title: `Accent: ${accent.label}`, variant: "success" }); }}
-                className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${isActive ? "border-foreground" : "border-border hover:border-brand-300"}`}
-              >
-                <div className="h-10 rounded-lg mb-2" style={{ backgroundColor: accent.swatch }} />
-                <p className="text-sm font-semibold">{accent.label}</p>
-                <p className="text-[11px] text-muted-foreground">{accent.description}</p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label className="text-xs uppercase text-muted-foreground mb-2 block">Corner Radius</Label>
-          <Select value={prefs.radius} onValueChange={(v: any) => { update({ radius: v }); pushToast({ title: `Radius: ${v}`, variant: "success" }); }}>
-            <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">None (sharp)</SelectItem>
-              <SelectItem value="sm">Small</SelectItem>
-              <SelectItem value="md">Medium (default)</SelectItem>
-              <SelectItem value="lg">Large (rounded)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label className="text-xs uppercase text-muted-foreground mb-2 block">Density</Label>
-          <Select value={prefs.density} onValueChange={(v: any) => { update({ density: v }); pushToast({ title: `Density: ${v}`, variant: "success" }); }}>
-            <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="compact">Compact (smaller text)</SelectItem>
-              <SelectItem value="comfortable">Comfortable (default)</SelectItem>
-              <SelectItem value="spacious">Spacious (larger text)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="p-3 rounded-xl bg-blue-50 border border-blue-200">
-        <p className="text-xs text-blue-800">
-          <CheckCircle2 className="h-3.5 w-3.5 inline mr-1" />
-          Your theme preferences are saved automatically and restored on every sign-in. Accent color applies across all modules consistently.
+        <h2 className="font-semibold text-foreground">Appearance</h2>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Choose a light or dark theme. The setting is stored in this browser.
         </p>
+      </div>
+      <div className="grid grid-cols-2 gap-3 max-w-md">
+        {options.map((option) => {
+          const isActive = prefs.mode === option.mode;
+          return (
+            <button
+              key={option.mode}
+              type="button"
+              aria-pressed={isActive}
+              onClick={() => update({ mode: option.mode })}
+              className={`p-4 rounded-lg border text-left ${isActive ? "border-brand-500 bg-brand-50" : "border-border hover:border-brand-300"}`}
+            >
+              <option.icon className="h-5 w-5 mb-2 text-brand-600" />
+              <p className="text-sm font-medium">{option.label}</p>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
 }
-
 function HospitalTab() {
   const { hospital, setHospital, pushToast } = useAppStore();
   const [form, setForm] = useState(hospital);
@@ -382,96 +311,29 @@ function HospitalTab() {
   );
 }
 
-function IntegrationsTab() {
-  const { pushToast } = useAppStore();
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="font-semibold text-foreground">Integrations</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">Connect MediCore with external services</p>
-        </div>
-        <Button size="sm" className="bg-brand-600 hover:bg-brand-700" onClick={() => pushToast({ title: "Integration marketplace", description: "Browse and install new integrations", variant: "info" })}>
-          <Plus className="h-4 w-4 mr-1.5" /> Add Integration
-        </Button>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {INTEGRATIONS.map((integ, i) => (
-          <motion.div key={integ.name} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.04 }}>
-            <Card className="border-border/60 shadow-soft hover:shadow-premium transition-all rounded-xl p-4 h-full">
-              <div className="flex items-start justify-between mb-3">
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${integ.color}`}><integ.icon className="h-5 w-5" /></div>
-                <StatusPill status={integ.status === "connected" ? "success" : "neutral"}>{integ.status === "connected" ? "Connected" : "Disconnected"}</StatusPill>
-              </div>
-              <p className="text-sm font-semibold">{integ.name}</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">{integ.category}</p>
-              <Button
-                variant={integ.status === "connected" ? "outline" : "default"}
-                size="sm"
-                className={`w-full mt-3 h-8 text-xs ${integ.status === "connected" ? "" : "bg-brand-600 hover:bg-brand-700"}`}
-                onClick={() => pushToast({ title: `${integ.status === "connected" ? "Configuring" : "Connecting"} ${integ.name}`, variant: "info" })}
-              >
-                {integ.status === "connected" ? "Configure" : "Connect"}
-              </Button>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function SystemTab() {
-  const { pushToast, backups, createBackup, setPage } = useAppStore();
+  const { setPage } = useAppStore();
   return (
     <div className="space-y-5">
       <div>
         <h2 className="font-semibold text-foreground">System Information</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">System status and operational metrics</p>
+        <p className="text-xs text-muted-foreground mt-0.5">Build and storage details for this installation</p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <SystemInfoCard label="System Version" value="MediCore v3.0.0" icon={SettingsIcon} />
-        <SystemInfoCard label="Database" value="Zustand + localStorage (browser)" icon={Database} />
-        <SystemInfoCard label="Backups Stored" value={`${backups.length} snapshots`} icon={Database} />
-        <SystemInfoCard label="Active Sessions" value="42" icon={Users} />
-        <SystemInfoCard label="API Response Time" value="124ms avg" icon={Globe} />
-        <SystemInfoCard label="Storage Used" value={`${Math.round((JSON.stringify(localStorage).length * 2) / 1024)} KB`} icon={Database} />
+        <SystemInfoCard label="Data Storage" value="Browser local storage (prototype)" icon={Database} />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <Card className="p-4 rounded-xl">
-          <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Quick Actions</p>
-          <div className="space-y-2">
-            <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => { createBackup("Manual backup from Settings"); }}>
-              <Database className="h-4 w-4 mr-2" /> Create Backup Now
-            </Button>
-            <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => setPage("backup")}>
-              <Database className="h-4 w-4 mr-2" /> Open Backup & Restore
-            </Button>
-            <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => setPage("activity-log")}>
-              <Database className="h-4 w-4 mr-2" /> View Activity Log
-            </Button>
-            <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => setPage("roles")}>
-              <Shield className="h-4 w-4 mr-2" /> Manage Roles & Permissions
-            </Button>
-          </div>
-        </Card>
-        <Card className="p-4 rounded-xl">
-          <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Health Check</p>
-          <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              <p className="text-sm font-semibold text-emerald-800">All systems operational</p>
-            </div>
-            <p className="text-xs text-emerald-700 mt-1">Last health check: 2 minutes ago · Uptime: 99.98%</p>
-          </div>
-          <div className="mt-3 space-y-1.5 text-xs">
-            <div className="flex justify-between"><span className="text-muted-foreground">Auth Service</span><span className="text-emerald-600">● Operational</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Database</span><span className="text-emerald-600">● Operational</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Backup Service</span><span className="text-emerald-600">● Operational</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Audit Logging</span><span className="text-emerald-600">● Operational</span></div>
-          </div>
-        </Card>
-      </div>
+      <Card className="p-4 rounded-xl">
+        <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Quick Actions</p>
+        <div className="space-y-2">
+          <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => setPage("activity-log")}>
+            <Database className="h-4 w-4 mr-2" /> View Activity Log
+          </Button>
+          <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => setPage("roles")}>
+            <Shield className="h-4 w-4 mr-2" /> Manage Roles & Permissions
+          </Button>
+        </div>
+      </Card>
     </div>
   );
 }

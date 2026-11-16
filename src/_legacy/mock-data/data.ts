@@ -169,7 +169,7 @@ const AVATAR_COLORS = [
   "oklch(0.62 0.18 320)",
 ];
 
-const pick = <T,>(arr: T[], i: number): T => arr[i % arr.length];
+const pick = <T,>(arr: T[], i: number): T => arr[i % arr.length]!;
 
 export const DEPARTMENTS = [
   "Cardiology",
@@ -966,29 +966,6 @@ export const ATTENDANCE_TREND = [
 ];
 
 // ====================================================================
-// COMMUNICATIONS / Messages
-// ====================================================================
-export interface Message {
-  id: string;
-  from: string;
-  fromRole: string;
-  avatarColor: string;
-  preview: string;
-  time: string;
-  unread: boolean;
-  channel: "direct" | "cardiology" | "er" | "pharmacy" | "admin";
-}
-
-export const MESSAGE_THREADS: Message[] = [
-  { id: "msg1", from: "Dr. James Okoro", fromRole: "ER", avatarColor: pick(AVATAR_COLORS, 2), preview: "STEMI patient arriving — cath lab ready?", time: "2m", unread: true, channel: "cardiology" },
-  { id: "msg2", from: "Nurse Olivia", fromRole: "ICU", avatarColor: pick(AVATAR_COLORS, 1), preview: "Romano's SpO2 dropped to 86%, need orders", time: "5m", unread: true, channel: "direct" },
-  { id: "msg3", from: "Pharm. David Kim", fromRole: "Pharmacy", avatarColor: pick(AVATAR_COLORS, 4), preview: "Metformin restock arrived, 2000 units", time: "12m", unread: false, channel: "pharmacy" },
-  { id: "msg4", from: "Dr. Priya Anand", fromRole: "Pediatrics", avatarColor: pick(AVATAR_COLORS, 5), preview: "Ethan Nakamura admitted — reviewing labs now", time: "25m", unread: false, channel: "direct" },
-  { id: "msg5", from: "Emma Wilson", fromRole: "Reception", avatarColor: pick(AVATAR_COLORS, 7), preview: "3 walk-ins waiting, can Dr. Chen take 11:30?", time: "38m", unread: false, channel: "admin" },
-  { id: "msg6", from: "Dr. Aisha Patel", fromRole: "Radiology", avatarColor: pick(AVATAR_COLORS, 5), preview: "Cohen's arm X-Ray shows transverse radius fracture", time: "1h", unread: false, channel: "er" },
-];
-
-// ====================================================================
 // REPORTS / BI Dashboards
 // ====================================================================
 export const DEPARTMENT_PERFORMANCE = [
@@ -1249,7 +1226,7 @@ function makeInitialBags(): BloodBag[] {
       donationDate: donation.toISOString().slice(0, 10),
       expiryDate: expiry.toISOString().slice(0, 10),
       batchNo: `BBT-${donation.getFullYear()}${String(donation.getMonth() + 1).padStart(2, "0")}${String(i + 1).padStart(2, "0")}`,
-      location: ["Cold Room 1", "Cold Room 2", "Freezer A"][i % 3],
+      location: ["Cold Room 1", "Cold Room 2", "Freezer A"][i % 3]!,
       status: isExpired ? "expired" : "available",
     });
   });

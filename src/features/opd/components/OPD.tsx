@@ -62,13 +62,9 @@ export default function OPD() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-medium text-brand-600 uppercase tracking-wider">Outpatient Department</span>
-            <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-md font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              LIVE
-            </span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">OPD Queue</h1>
-          <p className="text-sm text-muted-foreground mt-1">Real-time patient flow · {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}</p>
+          <p className="text-sm text-muted-foreground mt-1">Patient flow for {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}</p>
         </div>
         <Button size="sm" className="bg-brand-600 hover:bg-brand-700 h-9" onClick={() => openModal("newPatient")}>
           <Plus className="h-4 w-4 mr-1.5" />

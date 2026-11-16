@@ -11,14 +11,13 @@
 //   - Purchasing: purchase orders, goods receipts, purchase returns
 //   - Suppliers: with running account balances
 //   - Blood bank: bags, donors, transfusions
-//   - Backups: snapshot records
-//   - App settings: hospital profile, backup schedule, security, notifications
+//   - App settings: hospital profile, security, notifications
 // ============================================================================
 
 import { create } from "zustand";
 import type { User, Role, Patient, Appointment, Medicine } from "@/_legacy/mock-data/data";
 import {
-  USERS_BY_ROLE, CURRENT_USER, PATIENTS, DOCTORS, MEDICINES, APPOINTMENTS,
+  CURRENT_USER, PATIENTS, DOCTORS, MEDICINES, APPOINTMENTS,
   SUPPLIERS, BLOOD_DONORS, BLOOD_BAGS_SEED, DEFAULT_HOSPITAL,
   type Supplier, type BloodBag, type BloodDonor, type BloodType, type BloodComponent,
   type HospitalProfile,
@@ -28,22 +27,22 @@ import {
 export type { Supplier, BloodBag, BloodDonor, BloodType, BloodComponent, HospitalProfile };
 import { can as rbacCan, toExtendedRole, type ExtendedRole, type Module, type Action } from "@/lib/rbac";
 import { ThemePrefs, DEFAULT_THEME } from "@/lib/theme";
-import { readLS, writeLS, checksum } from "@/lib/storage";
+import { readLS, writeLS } from "@/lib/storage";
 
 export type PageKey =
   | "dashboard" | "patients" | "appointments" | "opd" | "emergency" | "ipd" | "emr"
   | "nursing" | "billing" | "pharmacy" | "lab" | "radiology" | "inventory"
-  | "blood-bank" | "insurance" | "finance" | "hr" | "reports" | "communications"
-  | "live-consultation" | "settings" | "activity-log" | "backup" | "services"
+  | "blood-bank" | "insurance" | "finance" | "hr" | "reports"
+  | "settings" | "activity-log" | "services"
   | "roles" | "purchases" | "suppliers";
 
 export type ModalType =
   | "pos" | "return" | "newPrescription" | "newPurchaseOrder" | "restock"
   | "newPatient" | "newInvoice" | "newAppointment" | "newLabOrder" | "newExpense"
-  | "admitPatient" | "newStaff" | "sendAnnouncement" | "startCall" | "newNote"
+  | "admitPatient" | "newStaff" | "newNote"
   | "collectPayment" | "newInventoryItem" | "newImagingOrder" | "viewLabResult"
   | "receiveGoods" | "newPurchaseReturn" | "newSupplier" | "newBloodDonation"
-  | "newDonor" | "newTransfusion" | "restoreBackup" | "editUser" | "editPermissions"
+  | "newDonor" | "newTransfusion" | "editUser" | "editPermissions"
   | "adjustStock";
 
 export type ToastVariant = "success" | "warning" | "info" | "danger";
@@ -55,7 +54,7 @@ export interface ToastItem { id: string; title: string; description?: string; va
 export type ActivityCategory =
   | "auth" | "patient" | "appointment" | "pharmacy" | "inventory"
   | "purchase" | "purchase_return" | "supplier" | "lab" | "radiology"
-  | "billing" | "payment" | "user" | "role" | "permission" | "backup"
+  | "billing" | "payment" | "user" | "role" | "permission"
   | "system" | "blood_bank" | "nursing" | "ipd" | "emr" | "settings"
   | "finance" | "clinical" | "hr" | "opd";
 
@@ -225,23 +224,6 @@ export interface BloodTransfusion {
 }
 
 // ============================================================================
-// BACKUPS
-// ============================================================================
-export interface BackupRecord {
-  id: string;
-  name: string;
-  timestamp: string; // ISO
-  type: "manual" | "auto";
-  sizeBytes: number;
-  status: "completed" | "failed" | "in_progress";
-  createdBy?: string;
-  schemaVersion: string;
-  notes?: string;
-  checksum: string;
-  payloadKey: string; // localStorage key containing the snapshot
-}
-
-// ============================================================================
 // USERS (extended) + SECURITY SETTINGS
 // ============================================================================
 export interface SystemUserRecord {
@@ -272,15 +254,6 @@ export interface NotificationSettings {
   paymentReceipts: boolean;
   labResultsReady: boolean;
   staffScheduleChanges: boolean;
-}
-
-export interface BackupSchedule {
-  enabled: boolean;
-  interval: "daily" | "weekly" | "monthly";
-  time: string; // HH:MM
-  retentionDays: number;
-  lastBackupAt?: string;
-  nextBackupAt?: string;
 }
 
 // ============================================================================
@@ -319,9 +292,6 @@ export interface LiveNote {
   id: string; patientId: string; patientName: string; mrn: string; type: string;
   content: string; author: string; date: string;
 }
-export interface LiveAnnouncement {
-  id: string; channel: string; subject: string; message: string; author: string; date: string;
-}
 export interface LiveBed {
   id: string; bedNumber: string; ward: string; type: string; status: "available" | "occupied" | "cleaning" | "maintenance";
   patientId?: string; patientName?: string; admittedOn?: string; attending?: string; condition?: string;
@@ -332,8 +302,8 @@ export interface LiveAppointment extends Appointment {}
 // Sequence counters + UID helper
 // ============================================================================
 let toastSeq = 0, activitySeq = 0, saleSeq = 100, labSeq = 500, rxSeq = 1100, invSeq = 1100, retSeq = 300;
-let patSeq = 100, aptSeq = 200, staffSeq = 100, expSeq = 100, noteSeq = 100, annSeq = 100, poSeq = 100;
-let grSeq = 0, prSeq = 100, donorSeq = 100, bagSeq = 100, txSeq = 100, userSeq = 100, backupSeq = 0;
+let patSeq = 100, aptSeq = 200, staffSeq = 100, expSeq = 100, noteSeq = 100, poSeq = 100;
+let grSeq = 0, prSeq = 100, donorSeq = 100, bagSeq = 100, txSeq = 100, userSeq = 100;
 function uid(p: string) { return `${p}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`; }
 
 // ============================================================================
@@ -370,7 +340,7 @@ interface AppState {
   // ===== Auth / UI =====
   authenticated: boolean;
   user: User | null;
-  login: (role?: Role | ExtendedRole, username?: string) => { ok: boolean; error?: string };
+  setSessionUser: (user: User) => void;
   logout: () => void;
   failedLoginAttempts: number;
   currentPage: PageKey;
@@ -421,8 +391,6 @@ interface AppState {
   setSecurity: (partial: Partial<SecuritySettings>) => void;
   notifications: NotificationSettings;
   setNotifications: (partial: Partial<NotificationSettings>) => void;
-  backupSchedule: BackupSchedule;
-  setBackupSchedule: (partial: Partial<BackupSchedule>) => void;
 
   // ===== Users (extended) =====
   users: SystemUserRecord[];
@@ -449,7 +417,7 @@ interface AppState {
   liveReturns: LiveReturn[];
   addReturn: (r: Omit<LiveReturn, "id" | "number" | "date" | "status">) => void;
 
-  // ===== Patients / Appointments / Beds / Staff / Notes / Expenses / Announcements =====
+  // ===== Patients / Appointments / Beds / Staff / Notes / Expenses =====
   livePatients: Patient[];
   addPatient: (p: Omit<Patient, "id" | "mrn" | "registeredOn" | "status" | "allergies" | "chronicConditions" | "balance" | "avatarColor"> & Partial<Patient>) => Patient;
   liveAppointments: LiveAppointment[];
@@ -461,8 +429,6 @@ interface AppState {
   addExpense: (e: Omit<LiveExpense, "id" | "number" | "date" | "recordedBy">) => void;
   liveNotes: LiveNote[];
   addNote: (n: Omit<LiveNote, "id" | "date" | "author">) => void;
-  liveAnnouncements: LiveAnnouncement[];
-  addAnnouncement: (a: Omit<LiveAnnouncement, "id" | "date" | "author">) => void;
   liveBeds: LiveBed[];
   admitPatient: (bedId: string, patientId: string, attending: string, condition: string) => void;
   dischargeBed: (bedId: string) => void;
@@ -535,15 +501,6 @@ interface AppState {
     notes?: string;
   }) => BloodTransfusion | null;
   updateTransfusionStatus: (id: string, status: BloodTransfusion["status"], reactions?: string) => void;
-
-  // ===== Backups =====
-  backups: BackupRecord[];
-  createBackup: (name?: string, type?: "manual" | "auto") => BackupRecord | null;
-  deleteBackup: (id: string) => void;
-  restoreBackup: (id: string) => { ok: boolean; error?: string };
-
-  // ===== Restore full state (used by restore) =====
-  _restoreFromSnapshot: (snapshot: any) => void;
 }
 
 // ============================================================================
@@ -572,18 +529,18 @@ const AVATAR_COLORS = [
 
 // Seed users (extended)
 const SEED_USERS: SystemUserRecord[] = [
-  { id: "u1", name: "James Whitfield", email: "j.whitfield@medicore.io", role: "admin", status: "active", lastActive: "5 min ago", twoFactor: true, avatarColor: AVATAR_COLORS[0], department: "Administration" },
-  { id: "u2", name: "Dr. Sarah Chen", email: "s.chen@medicore.io", role: "doctor", status: "active", lastActive: "2 min ago", twoFactor: true, avatarColor: AVATAR_COLORS[1], department: "Cardiology" },
-  { id: "u3", name: "Olivia Brown", email: "o.brown@medicore.io", role: "nurse", status: "active", lastActive: "12 min ago", twoFactor: false, avatarColor: AVATAR_COLORS[2], department: "ICU" },
-  { id: "u4", name: "Emma Wilson", email: "e.wilson@medicore.io", role: "receptionist", status: "active", lastActive: "Just now", twoFactor: false, avatarColor: AVATAR_COLORS[3], department: "Front Desk" },
-  { id: "u5", name: "David Kim", email: "d.kim@medicore.io", role: "pharmacy_manager", status: "active", lastActive: "8 min ago", twoFactor: true, avatarColor: AVATAR_COLORS[4], department: "Pharmacy" },
-  { id: "u6", name: "Marcus Lee", email: "m.lee@medicore.io", role: "lab_staff", status: "active", lastActive: "20 min ago", twoFactor: false, avatarColor: AVATAR_COLORS[5], department: "Laboratory" },
-  { id: "u7", name: "Dr. Aisha Patel", email: "a.patel@medicore.io", role: "radiologist", status: "active", lastActive: "1 hr ago", twoFactor: true, avatarColor: AVATAR_COLORS[6], department: "Radiology" },
-  { id: "u8", name: "Robert Garcia", email: "r.garcia@medicore.io", role: "accountant", status: "active", lastActive: "3 hr ago", twoFactor: true, avatarColor: AVATAR_COLORS[7], department: "Finance" },
-  { id: "u9", name: "Linda Martinez", email: "l.martinez@medicore.io", role: "inventory_staff", status: "active", lastActive: "1 hr ago", twoFactor: false, avatarColor: AVATAR_COLORS[0], department: "Inventory" },
-  { id: "u10", name: "Dr. Hassan Ali", email: "h.ali@medicore.io", role: "dentist", status: "active", lastActive: "Just now", twoFactor: true, avatarColor: AVATAR_COLORS[4], department: "Dental" },
-  { id: "u11", name: "Nadia Petrova", email: "n.petrova@medicore.io", role: "pharmacist", status: "active", lastActive: "30 min ago", twoFactor: false, avatarColor: AVATAR_COLORS[5], department: "Pharmacy" },
-  { id: "u12", name: "Carlos Reyes", email: "c.reyes@medicore.io", role: "storekeeper", status: "active", lastActive: "15 min ago", twoFactor: false, avatarColor: AVATAR_COLORS[2], department: "Warehouse" },
+  { id: "u1", name: "James Whitfield", email: "j.whitfield@medicore.io", role: "admin", status: "active", lastActive: "5 min ago", twoFactor: true, avatarColor: AVATAR_COLORS[0]!, department: "Administration" },
+  { id: "u2", name: "Dr. Sarah Chen", email: "s.chen@medicore.io", role: "doctor", status: "active", lastActive: "2 min ago", twoFactor: true, avatarColor: AVATAR_COLORS[1]!, department: "Cardiology" },
+  { id: "u3", name: "Olivia Brown", email: "o.brown@medicore.io", role: "nurse", status: "active", lastActive: "12 min ago", twoFactor: false, avatarColor: AVATAR_COLORS[2]!, department: "ICU" },
+  { id: "u4", name: "Emma Wilson", email: "e.wilson@medicore.io", role: "receptionist", status: "active", lastActive: "Just now", twoFactor: false, avatarColor: AVATAR_COLORS[3]!, department: "Front Desk" },
+  { id: "u5", name: "David Kim", email: "d.kim@medicore.io", role: "pharmacy_manager", status: "active", lastActive: "8 min ago", twoFactor: true, avatarColor: AVATAR_COLORS[4]!, department: "Pharmacy" },
+  { id: "u6", name: "Marcus Lee", email: "m.lee@medicore.io", role: "lab_staff", status: "active", lastActive: "20 min ago", twoFactor: false, avatarColor: AVATAR_COLORS[5]!, department: "Laboratory" },
+  { id: "u7", name: "Dr. Aisha Patel", email: "a.patel@medicore.io", role: "radiologist", status: "active", lastActive: "1 hr ago", twoFactor: true, avatarColor: AVATAR_COLORS[6]!, department: "Radiology" },
+  { id: "u8", name: "Robert Garcia", email: "r.garcia@medicore.io", role: "accountant", status: "active", lastActive: "3 hr ago", twoFactor: true, avatarColor: AVATAR_COLORS[7]!, department: "Finance" },
+  { id: "u9", name: "Linda Martinez", email: "l.martinez@medicore.io", role: "inventory_staff", status: "active", lastActive: "1 hr ago", twoFactor: false, avatarColor: AVATAR_COLORS[0]!, department: "Inventory" },
+  { id: "u10", name: "Dr. Hassan Ali", email: "h.ali@medicore.io", role: "dentist", status: "active", lastActive: "Just now", twoFactor: true, avatarColor: AVATAR_COLORS[4]!, department: "Dental" },
+  { id: "u11", name: "Nadia Petrova", email: "n.petrova@medicore.io", role: "pharmacist", status: "active", lastActive: "30 min ago", twoFactor: false, avatarColor: AVATAR_COLORS[5]!, department: "Pharmacy" },
+  { id: "u12", name: "Carlos Reyes", email: "c.reyes@medicore.io", role: "storekeeper", status: "active", lastActive: "15 min ago", twoFactor: false, avatarColor: AVATAR_COLORS[2]!, department: "Warehouse" },
 ];
 
 // Seed medicine batches from MEDICINES (one batch each, with current stock)
@@ -709,7 +666,7 @@ function seedActivityLog(): ActivityEntry[] {
     { id: uid("act"), timestamp: new Date(now.getTime() - 1000 * 60 * 90).toISOString(), user: "Linda Martinez", role: "inventory_staff", action: "Received goods", category: "purchase", module: "purchases", targetRecordId: "gr-2", targetRecordType: "GoodsReceipt", details: "Received GRN-2026-0002 (1100/2200 units)", success: true },
     { id: uid("act"), timestamp: new Date(now.getTime() - 1000 * 60 * 60 * 4).toISOString(), user: "Linda Martinez", role: "inventory_staff", action: "Created purchase return", category: "purchase_return", module: "purchase_returns", targetRecordId: "pr-seed-1", targetRecordType: "PurchaseReturn", details: "Returned 50 units of Amoxicillin (damaged)", success: true },
     { id: uid("act"), timestamp: new Date(now.getTime() - 1000 * 60 * 60 * 8).toISOString(), user: "David Kim", role: "pharmacy_manager", action: "Created purchase order", category: "purchase", module: "purchases", targetRecordId: "po-seed-3", targetRecordType: "PurchaseOrder", details: "Created PO-2026-0044 (DiabeCare Products, $2,134.00)", success: true },
-    { id: uid("act"), timestamp: new Date(now.getTime() - 1000 * 60 * 60 * 24).toISOString(), user: "System", role: "system", action: "Automatic backup completed", category: "backup", module: "backup", details: "Auto-backup created at scheduled time (2.1 MB)", success: true },
+    { id: uid("act"), timestamp: new Date(now.getTime() - 1000 * 60 * 60 * 24).toISOString(), user: "System", role: "system", action: "Automatic task completed", category: "system", module: "settings", details: "Scheduled system task completed", success: true },
     { id: uid("act"), timestamp: new Date(now.getTime() - 1000 * 60 * 60 * 48).toISOString(), user: "Marcus Lee", role: "lab_staff", action: "Verified lab result", category: "lab", module: "lab", targetRecordId: "l5", targetRecordType: "LabOrder", details: "Verified Chest X-Ray for Liam Patel", success: true },
   ];
 }
@@ -722,24 +679,15 @@ export const useAppStore = create<AppState>((set, get) => ({
   authenticated: false,
   user: null,
   failedLoginAttempts: 0,
-  login: (role = "doctor", username) => {
-    const extRole = toExtendedRole(role as ExtendedRole);
-    // Simulated auth — accepts demo accounts. Records login to activity log.
-    const userObj = (USERS_BY_ROLE as any)[role as string] ?? {
-      id: "u-demo",
-      name: username || `${extRole} user`,
-      role: role as Role,
-      email: `${extRole}@medicore.io`,
-    };
-    set({ authenticated: true, user: userObj, currentPage: "dashboard", failedLoginAttempts: 0 });
+  setSessionUser: (sessionUser) => {
+    set({ authenticated: true, user: sessionUser, currentPage: "dashboard", failedLoginAttempts: 0 });
     get().logActivity({
       action: "Signed in",
       category: "auth",
       module: "auth",
-      details: `${userObj.name} (${extRole}) signed in successfully`,
+      details: `${sessionUser.name} signed in`,
       success: true,
     });
-    return { ok: true };
   },
   logout: () => {
     const u = get().user;
@@ -887,18 +835,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((s) => ({ notifications: { ...s.notifications, ...partial } }));
     get().logActivity({ action: "Updated notification preferences", category: "settings", module: "settings", details: `Updated: ${Object.keys(partial).join(", ")}`, success: true });
   },
-  backupSchedule: {
-    enabled: true,
-    interval: "daily",
-    time: "02:00",
-    retentionDays: 30,
-    lastBackupAt: new Date(Date.now() - 1000 * 60 * 60 * 18).toISOString(),
-    nextBackupAt: new Date(Date.now() + 1000 * 60 * 60 * 6).toISOString(),
-  },
-  setBackupSchedule: (partial) => {
-    set((s) => ({ backupSchedule: { ...s.backupSchedule, ...partial } }));
-    get().logActivity({ action: "Updated backup schedule", category: "backup", module: "backup", details: `Updated: ${Object.keys(partial).join(", ")}`, success: true });
-  },
 
   // ===== Users =====
   users: SEED_USERS,
@@ -912,7 +848,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       ...u,
       id: uid("usr"),
       lastActive: "Never",
-      avatarColor: u.avatarColor ?? AVATAR_COLORS[userSeq % AVATAR_COLORS.length],
+      avatarColor: u.avatarColor ?? AVATAR_COLORS[userSeq % AVATAR_COLORS.length]!,
     };
     set((s) => ({ users: [newUser, ...s.users] }));
     get().logActivity({ action: "Created user", category: "user", module: "users", targetRecordId: newUser.id, targetRecordType: "User", details: `Created ${newUser.name} (${newUser.role})`, success: true });
@@ -1042,7 +978,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     get().logActivity({ action: "Processed sale return", category: "billing", module: "billing", details: `Return for ${r.saleNumber} — $${r.amount.toFixed(2)}`, success: true });
   },
 
-  // ===== Patients / Appointments / Beds / Staff / Notes / Expenses / Announcements =====
+  // ===== Patients / Appointments / Beds / Staff / Notes / Expenses =====
   livePatients: [],
   addPatient: (p) => {
     patSeq++;
@@ -1054,7 +990,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       allergies: p.allergies ?? [],
       chronicConditions: p.chronicConditions ?? [],
       balance: 0,
-      avatarColor: AVATAR_COLORS[patSeq % AVATAR_COLORS.length],
+      avatarColor: AVATAR_COLORS[patSeq % AVATAR_COLORS.length]!,
       ...p,
     } as Patient;
     set((s) => ({ livePatients: [newP, ...s.livePatients] }));
@@ -1080,7 +1016,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       id: uid("staff"),
       joinedOn: new Date().toISOString().slice(0, 10),
       status: "active",
-      avatarColor: AVATAR_COLORS[staffSeq % AVATAR_COLORS.length],
+      avatarColor: AVATAR_COLORS[staffSeq % AVATAR_COLORS.length]!,
     };
     set((st) => ({ liveStaff: [newS, ...st.liveStaff] }));
     get().logActivity({ action: "Added staff member", category: "user", module: "hr", targetRecordId: newS.id, targetRecordType: "Staff", details: `${newS.name} (${newS.role})`, success: true });
@@ -1096,12 +1032,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     noteSeq++;
     set((s) => ({ liveNotes: [{ ...n, id: uid("note"), date: new Date().toLocaleString([], { month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" }), author: get().user?.name ?? CURRENT_USER.name }, ...s.liveNotes] }));
     get().logActivity({ action: `Added ${n.type} note`, category: "emr", module: "emr", targetRecordId: n.patientId, targetRecordType: "Patient", details: `Note for ${n.patientName}`, success: true });
-  },
-  liveAnnouncements: [],
-  addAnnouncement: (a) => {
-    annSeq++;
-    set((s) => ({ liveAnnouncements: [{ ...a, id: uid("ann"), date: new Date().toLocaleString([], { month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" }), author: get().user?.name ?? CURRENT_USER.name }, ...s.liveAnnouncements] }));
-    get().logActivity({ action: "Sent announcement", category: "system", module: "communications", details: `${a.subject} → ${a.channel}`, success: true });
   },
   liveBeds: SEED_BEDS,
   admitPatient: (bedId, patientId, attending, condition) => set((s) => {
@@ -1582,7 +1512,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       id: uid("bd"),
       totalDonations: d.totalDonations ?? 0,
       status: d.status ?? "eligible",
-      avatarColor: d.avatarColor ?? AVATAR_COLORS[donorSeq % AVATAR_COLORS.length],
+      avatarColor: d.avatarColor ?? AVATAR_COLORS[donorSeq % AVATAR_COLORS.length]!,
     };
     set((s) => ({ bloodDonors: [newD, ...s.bloodDonors] }));
     get().logActivity({ action: "Registered blood donor", category: "blood_bank", module: "blood_bank", targetRecordId: newD.id, targetRecordType: "BloodDonor", details: `${newD.name} (${newD.bloodType})`, success: true });
@@ -1710,155 +1640,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     const t = get().bloodTransfusions.find((x) => x.id === id);
     get().logActivity({ action: `Transfusion ${status}`, category: "blood_bank", module: "blood_bank", targetRecordId: id, targetRecordType: "Transfusion", details: `${t?.number} now ${status}${reactions ? ` — reactions: ${reactions}` : ""}`, success: true });
   },
-
-  // ===== Backups =====
-  backups: (typeof window !== "undefined" ? readLS<BackupRecord[]>("medicore-backups-index") : null) ?? [],
-  createBackup: (name, type = "manual") => {
-    if (type === "manual" && !get().can("backup", "create")) {
-      get().pushToast({ title: "Access denied", description: "You cannot create backups.", variant: "danger" });
-      return null;
-    }
-    backupSeq++;
-    const snapshot = {
-      version: "1.0",
-      timestamp: new Date().toISOString(),
-      hospital: get().hospital,
-      security: get().security,
-      notifications: get().notifications,
-      backupSchedule: get().backupSchedule,
-      users: get().users,
-      suppliers: get().suppliers,
-      purchaseOrders: get().purchaseOrders,
-      purchaseReturns: get().purchaseReturns,
-      medicineBatches: get().medicineBatches,
-      medicineStock: get().medicineStock,
-      bloodBags: get().bloodBags,
-      bloodDonors: get().bloodDonors,
-      bloodTransfusions: get().bloodTransfusions,
-      sales: get().sales,
-      liveInvoices: get().liveInvoices,
-      liveLabOrders: get().liveLabOrders,
-      livePrescriptions: get().livePrescriptions,
-      livePatients: get().livePatients,
-      liveAppointments: get().liveAppointments,
-      liveStaff: get().liveStaff,
-      liveExpenses: get().liveExpenses,
-      liveNotes: get().liveNotes,
-      liveAnnouncements: get().liveAnnouncements,
-      liveBeds: get().liveBeds,
-      liveReturns: get().liveReturns,
-      activityLog: get().activityLog,
-    };
-    const payloadKey = `medicore-backup-${Date.now()}`;
-    const serialized = JSON.stringify(snapshot);
-    const ok = writeLS(payloadKey, serialized);
-    if (!ok) {
-      get().pushToast({ title: "Backup failed", description: "Could not write backup to storage.", variant: "danger" });
-      get().logActivity({ action: "Backup failed (storage error)", category: "backup", module: "backup", details: `Failed to persist snapshot (~${(serialized.length / 1024).toFixed(1)} KB)`, success: false });
-      return null;
-    }
-    const rec: BackupRecord = {
-      id: uid("bk"),
-      name: name ?? `Backup ${new Date().toLocaleString()}`,
-      timestamp: new Date().toISOString(),
-      type,
-      sizeBytes: serialized.length * 2,
-      status: "completed",
-      createdBy: type === "manual" ? (get().user?.name ?? "System") : "System",
-      schemaVersion: "1.0",
-      checksum: checksum(serialized),
-      payloadKey,
-    };
-    set((s) => {
-      const next = [rec, ...s.backups].slice(0, 50);
-      writeLS("medicore-backups-index", next);
-      return { backups: next };
-    });
-    set((s) => ({
-      backupSchedule: type === "auto" ? { ...s.backupSchedule, lastBackupAt: rec.timestamp, nextBackupAt: new Date(Date.now() + (s.backupSchedule.interval === "daily" ? 86400000 : s.backupSchedule.interval === "weekly" ? 604800000 : 2592000000)).toISOString() } : s.backupSchedule,
-    }));
-    get().logActivity({ action: `${type === "auto" ? "Automatic" : "Manual"} backup created`, category: "backup", module: "backup", targetRecordId: rec.id, targetRecordType: "Backup", details: `${rec.name} — ${(rec.sizeBytes / 1024).toFixed(1)} KB — checksum ${rec.checksum}`, success: true });
-    get().pushToast({ title: "Backup created", description: `${rec.name} (${(rec.sizeBytes / 1024).toFixed(1)} KB)`, variant: "success" });
-    return rec;
-  },
-  deleteBackup: (id) => {
-    if (!get().can("backup", "delete")) {
-      get().pushToast({ title: "Access denied", variant: "danger" });
-      return;
-    }
-    const rec = get().backups.find((x) => x.id === id);
-    if (rec) removeLSKey(rec.payloadKey);
-    set((s) => {
-      const next = s.backups.filter((b) => b.id !== id);
-      writeLS("medicore-backups-index", next);
-      return { backups: next };
-    });
-    get().logActivity({ action: "Deleted backup", category: "backup", module: "backup", targetRecordId: id, targetRecordType: "Backup", details: `Deleted ${rec?.name}`, success: true });
-    get().pushToast({ title: "Backup deleted", description: rec?.name, variant: "warning" });
-  },
-  restoreBackup: (id) => {
-    if (!get().can("backup", "restore")) {
-      return { ok: false, error: "You do not have permission to restore backups." };
-    }
-    const rec = get().backups.find((b) => b.id === id);
-    if (!rec) return { ok: false, error: "Backup not found." };
-    if (rec.status !== "completed") return { ok: false, error: "Backup is not in a restorable state." };
-    const payload = readLS<any>(rec.payloadKey);
-    if (!payload) return { ok: false, error: "Backup payload missing or corrupted." };
-    // Validate checksum
-    const serialized = typeof payload === "string" ? payload : JSON.stringify(payload);
-    const actualChecksum = checksum(serialized);
-    if (actualChecksum !== rec.checksum) {
-      get().logActivity({ action: "Restore failed (checksum mismatch)", category: "backup", module: "backup", targetRecordId: id, targetRecordType: "Backup", details: `Expected ${rec.checksum}, got ${actualChecksum}`, success: false });
-      return { ok: false, error: "Backup checksum mismatch — file may be corrupted." };
-    }
-    try {
-      const snapshot = typeof payload === "string" ? JSON.parse(payload) : payload;
-      get()._restoreFromSnapshot(snapshot);
-      get().logActivity({ action: "Restored from backup", category: "backup", module: "backup", targetRecordId: id, targetRecordType: "Backup", details: `Restored ${rec.name} (${(rec.sizeBytes / 1024).toFixed(1)} KB)`, success: true });
-      return { ok: true };
-    } catch (e: any) {
-      get().logActivity({ action: "Restore failed (parse error)", category: "backup", module: "backup", targetRecordId: id, targetRecordType: "Backup", details: e?.message ?? "Parse error", success: false });
-      return { ok: false, error: "Failed to parse backup data." };
-    }
-  },
-  _restoreFromSnapshot: (snap) => {
-    set((s) => ({
-      hospital: snap.hospital ?? s.hospital,
-      security: snap.security ?? s.security,
-      notifications: snap.notifications ?? s.notifications,
-      backupSchedule: snap.backupSchedule ?? s.backupSchedule,
-      users: snap.users ?? s.users,
-      suppliers: snap.suppliers ?? s.suppliers,
-      purchaseOrders: snap.purchaseOrders ?? s.purchaseOrders,
-      purchaseReturns: snap.purchaseReturns ?? s.purchaseReturns,
-      medicineBatches: snap.medicineBatches ?? s.medicineBatches,
-      medicineStock: snap.medicineStock ?? s.medicineStock,
-      bloodBags: snap.bloodBags ?? s.bloodBags,
-      bloodDonors: snap.bloodDonors ?? s.bloodDonors,
-      bloodTransfusions: snap.bloodTransfusions ?? s.bloodTransfusions,
-      sales: snap.sales ?? s.sales,
-      liveInvoices: snap.liveInvoices ?? s.liveInvoices,
-      liveLabOrders: snap.liveLabOrders ?? s.liveLabOrders,
-      livePrescriptions: snap.livePrescriptions ?? s.livePrescriptions,
-      livePatients: snap.livePatients ?? s.livePatients,
-      liveAppointments: snap.liveAppointments ?? s.liveAppointments,
-      liveStaff: snap.liveStaff ?? s.liveStaff,
-      liveExpenses: snap.liveExpenses ?? s.liveExpenses,
-      liveNotes: snap.liveNotes ?? s.liveNotes,
-      liveAnnouncements: snap.liveAnnouncements ?? s.liveAnnouncements,
-      liveBeds: snap.liveBeds ?? s.liveBeds,
-      liveReturns: snap.liveReturns ?? s.liveReturns,
-      activityLog: snap.activityLog ?? s.activityLog,
-    }));
-  },
 }));
-
-// Helper: remove a localStorage key (defined outside store to avoid importing storage.ts multiple times)
-function removeLSKey(key: string) {
-  if (typeof window === "undefined") return;
-  try { localStorage.removeItem(key); } catch { /* ignore */ }
-}
 
 // ============================================================================
 // Re-export blood-bank constants from data.ts so consumers can import from store

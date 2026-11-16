@@ -29,6 +29,7 @@ import { INVENTORY_ITEMS, MEDICINES, type InventoryItem, type Medicine } from "@
 import { KpiCard, StatusPill } from "@/components/shared/ui-bits";
 import { useAppStore } from "@/store/app-store";
 import { exportToCsv } from "@/lib/print";
+import { TODAY_ISO, isoDaysFromNow } from "@/lib/dates";
 import { can } from "@/lib/rbac";
 
 const CATEGORIES = ["All", "Surgical", "PPE", "Consumable", "Wound Care", "Blood Bank", "Cardiology", "Urology", "Respiratory"];
@@ -185,9 +186,9 @@ export default function Inventory() {
               <tbody>
                 {filteredBatches.map((b, i) => {
                   const med = MEDICINES.find((m) => m.id === b.medicineId);
-                  const today = new Date().toISOString().slice(0, 10);
+                  const today = TODAY_ISO;
                   const isExpired = b.expiryDate < today;
-                  const isExpiringSoon = !isExpired && b.expiryDate <= new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+                  const isExpiringSoon = !isExpired && b.expiryDate <= isoDaysFromNow(30);
                   return (
                     <motion.tr key={b.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2, delay: i * 0.02 }} className="border-b border-border/50 hover:bg-accent/30">
                       <Td><span className="text-sm font-medium">{med?.name ?? b.medicineId}</span></Td>

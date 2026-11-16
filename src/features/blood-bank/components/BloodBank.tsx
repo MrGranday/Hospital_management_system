@@ -25,6 +25,7 @@ import {
 } from "@/_legacy/mock-data/data";
 import { KpiCard, StatusPill, ColorAvatar } from "@/components/shared/ui-bits";
 import { exportToCsv } from "@/lib/print";
+import { TODAY_ISO, isoDaysFromNow } from "@/lib/dates";
 import { can } from "@/lib/rbac";
 
 const COMPONENT_LABEL: Record<BloodComponent, string> = {
@@ -64,8 +65,8 @@ export default function BloodBank() {
 
   const stats = useMemo(() => {
     const available = bloodBags.filter((b) => b.status === "available").length;
-    const today = new Date().toISOString().slice(0, 10);
-    const expiringSoon = bloodBags.filter((b) => b.status === "available" && b.expiryDate <= new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10) && b.expiryDate >= today).length;
+    const today = TODAY_ISO;
+    const expiringSoon = bloodBags.filter((b) => b.status === "available" && b.expiryDate <= isoDaysFromNow(7) && b.expiryDate >= today).length;
     const expired = bloodBags.filter((b) => b.status === "expired" || (b.status === "available" && b.expiryDate < today)).length;
     const transfused = bloodTransfusions.length;
     return { available, expiringSoon, expired, transfused, donors: bloodDonors.filter((d) => d.status === "eligible").length };
@@ -275,8 +276,8 @@ function BloodInventory() {
           </thead>
           <tbody>
             {filtered.map((b, i) => {
-              const today = new Date().toISOString().slice(0, 10);
-              const isExpiringSoon = b.status === "available" && b.expiryDate <= new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10) && b.expiryDate >= today;
+              const today = TODAY_ISO;
+              const isExpiringSoon = b.status === "available" && b.expiryDate <= isoDaysFromNow(7) && b.expiryDate >= today;
               const isExpired = b.expiryDate < today;
               return (
                 <motion.tr key={b.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2, delay: i * 0.02 }} className="border-b border-border/50 hover:bg-accent/30 transition-colors">

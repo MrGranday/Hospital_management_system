@@ -124,13 +124,13 @@ export default function Appointments() {
                 <div key={h} className="h-20 border-b border-border/50 relative">
                   {dayAppointments
                     .filter((a) => {
-                      const aptHour = parseInt(a.time.split(":")[0]);
+                      const aptHour = parseInt(a.time.split(":")[0]!);
                       return aptHour === parseInt(h);
                     })
                     .map((apt, i) => {
                       const typeInfo = TYPE_INFO[apt.type];
                       const statusInfo = STATUS_INFO[apt.status];
-                      const minutes = parseInt(apt.time.split(":")[1]);
+                      const minutes = parseInt(apt.time.split(":")[1]!);
                       const topOffset = (minutes / 60) * 80; // 80px per hour
                       const height = (apt.duration / 60) * 80;
                       return (
@@ -149,7 +149,7 @@ export default function Appointments() {
                             const next: Record<string, Appointment["status"]> = {
                               scheduled: "checked-in", "checked-in": "in-progress", "in-progress": "completed", completed: "completed",
                             };
-                            const ns = next[apt.status];
+                            const ns = next[apt.status] ?? apt.status;
                             if (apt.id.startsWith("apt-")) { updateAppointmentStatus(apt.id, ns); pushToast({ title: `Marked ${ns}`, description: apt.patientName, variant: "success" }); }
                             else pushToast({ title: `Status: ${ns}`, description: `${apt.patientName} (demo data, cannot mutate)`, variant: "info" });
                           }}

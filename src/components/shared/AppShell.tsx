@@ -19,8 +19,6 @@ import {
   Wallet,
   UserCog,
   FileBarChart,
-  MessageSquare,
-  Video,
   Settings,
   Search,
   Bell,
@@ -36,16 +34,13 @@ import {
   CheckCircle2,
   Info,
   AlertCircle,
-  Sparkles,
   ShoppingCart,
   RotateCcw,
   Droplet,
   History,
-  Database,
   Shield,
   Sun,
   Moon,
-  Monitor,
   Package,
 } from "lucide-react";
 import { useAppStore, type PageKey } from "@/store/app-store";
@@ -56,7 +51,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { can, toExtendedRole, type Module } from "@/lib/rbac";
-import { useTheme, type ThemeMode } from "@/lib/theme";
+import { useTheme } from "@/lib/theme";
+import { signOutAction } from "@/server/auth/actions";
 
 interface NavItem {
   key: PageKey;
@@ -104,8 +100,6 @@ const NAV_GROUPS: NavGroup[] = [
       { key: "finance", label: "Finance", icon: Wallet, module: "finance" },
       { key: "hr", label: "Human Resources", icon: UserCog, module: "hr" },
       { key: "reports", label: "Reports", icon: FileBarChart, module: "reports" },
-      { key: "communications", label: "Communications", icon: MessageSquare, badge: 3, module: "communications" },
-      { key: "live-consultation", label: "Telemedicine", icon: Video, module: "telemedicine" },
     ],
   },
   {
@@ -114,7 +108,6 @@ const NAV_GROUPS: NavGroup[] = [
       { key: "settings", label: "Settings", icon: Settings, module: "settings" },
       { key: "roles", label: "Roles & Permissions", icon: Shield, module: "roles" },
       { key: "activity-log", label: "Activity Log", icon: History, module: "activity_log" },
-      { key: "backup", label: "Backup & Restore", icon: Database, module: "backup" },
     ],
   },
 ];
@@ -162,7 +155,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 }
 
 function DesktopSidebar() {
-  const { sidebarCollapsed, toggleSidebar, currentPage, setPage, pushToast, user } = useAppStore();
+  const { sidebarCollapsed, toggleSidebar, currentPage, setPage, user } = useAppStore();
   const role = user?.role;
   const filteredGroups = useMemo(() => {
     return NAV_GROUPS.map((g) => ({
@@ -217,24 +210,6 @@ function DesktopSidebar() {
           );
         })}
       </nav>
-
-      {/* Upgrade card */}
-      {!sidebarCollapsed && (
-        <div className="px-3 pb-3">
-          <div className="rounded-xl bg-gradient-to-br from-brand-600 to-brand-800 p-3.5 text-white shadow-blue-glow">
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="h-4 w-4 text-brand-200" />
-              <p className="text-xs font-semibold">AI Assistant</p>
-            </div>
-            <p className="text-[11px] text-white/80 leading-relaxed mb-2.5">
-              Get clinical insights and draft notes 3× faster
-            </p>
-            <button className="w-full text-xs font-medium bg-white/15 hover:bg-white/25 transition-colors rounded-md py-1.5" onClick={() => pushToast({ title: "AI Assistant beta", description: "Coming soon — stay tuned!", variant: "info" })}>
-              Try Beta →
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Collapse toggle */}
       <button
@@ -398,6 +373,10 @@ function TopBar() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const handleSignOut = () => {
+    logout();
+    void signOutAction();
+  };
 
   // Cmd-K
   useEffect(() => {
@@ -604,7 +583,7 @@ function TopBar() {
                   <div className="p-1.5">
                     <ProfileMenuItem icon={Settings} label="Account settings" onClick={() => { setPage("settings"); setProfileOpen(false); }} />
                     <ProfileMenuItem icon={CircleDot} label="Status: Available" onClick={() => pushToast({ title: "Status (demo)", description: "Status would update here", variant: "info" })} />
-                    <ProfileMenuItem icon={LogOut} label="Sign out" danger onClick={logout} />
+                    <ProfileMenuItem icon={LogOut} label="Sign out" danger onClick={handleSignOut} />
                   </div>
                 </motion.div>
               </>
@@ -654,10 +633,10 @@ function CommandPalette() {
     return all.filter((i) => i.label.toLowerCase().includes(query.toLowerCase()));
   }, [query, role]);
 
-  // Reset query when palette closes
-  useEffect(() => {
-    if (!commandOpen && query !== "") setQuery("");
-  }, [commandOpen]);
+  const closePalette = () => {
+    setCommandOpen(false);
+    setQuery("");
+  };
 
   return (
     <AnimatePresence>
@@ -668,7 +647,7 @@ function CommandPalette() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
-            onClick={() => setCommandOpen(false)}
+            onClick={closePalette}
           />
           <motion.div
             initial={{ opacity: 0, scale: 0.97, y: -8 }}
@@ -700,7 +679,7 @@ function CommandPalette() {
                       key={item.key}
                       onClick={() => {
                         setPage(item.key);
-                        setCommandOpen(false);
+                        closePalette();
                       }}
                       className="w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-accent transition-colors text-left"
                     >
@@ -720,80 +699,19 @@ function CommandPalette() {
 }
 
 // ============================================================================
-// Theme toggle button — cycles Light → Dark → System
+// Theme toggle button: light / dark
 // ============================================================================
 function ThemeToggle() {
   const { prefs, update } = useTheme();
-  const [open, setOpen] = useState(false);
-  const cycle: ThemeMode[] = ["light", "dark", "system"];
-  const next = cycle[(cycle.indexOf(prefs.mode) + 1) % cycle.length];
-  const Icon = prefs.mode === "light" ? Sun : prefs.mode === "dark" ? Moon : Monitor;
+  const isDark = prefs.mode === "dark";
   return (
-    <div className="relative">
-      <button
-        onClick={() => update({ mode: next })}
-        onContextMenu={(e) => { e.preventDefault(); setOpen((o) => !o); }}
-        className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-        title={`Theme: ${prefs.mode} (click to cycle, right-click for menu)`}
-      >
-        <Icon className="h-[18px] w-[18px]" />
-      </button>
-      <AnimatePresence>
-        {open && (
-          <>
-            <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-            <motion.div
-              initial={{ opacity: 0, y: -8, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -8, scale: 0.96 }}
-              transition={{ duration: 0.15 }}
-              className="absolute right-0 mt-2 w-56 bg-card rounded-xl shadow-premium border border-border overflow-hidden z-40 p-1.5"
-            >
-              <p className="px-2.5 py-1.5 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Theme Mode</p>
-              {([
-                { mode: "light", label: "Light", icon: Sun },
-                { mode: "dark", label: "Dark", icon: Moon },
-                { mode: "system", label: "System", icon: Monitor },
-              ] as const).map((opt) => (
-                <button
-                  key={opt.mode}
-                  onClick={() => { update({ mode: opt.mode }); setOpen(false); }}
-                  className={cn(
-                    "w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm hover:bg-accent transition-colors",
-                    prefs.mode === opt.mode && "bg-brand-50 text-brand-700",
-                  )}
-                >
-                  <opt.icon className="h-4 w-4" />
-                  {opt.label}
-                  {prefs.mode === opt.mode && <CheckCircle2 className="h-3.5 w-3.5 ml-auto" />}
-                </button>
-              ))}
-              <div className="my-1 h-px bg-border" />
-              <p className="px-2.5 py-1.5 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Accent Color</p>
-              <div className="grid grid-cols-8 gap-1 px-2 pb-1.5">
-                {([
-                  { key: "blue", color: "oklch(0.608 0.180 245)" },
-                  { key: "emerald", color: "oklch(0.62 0.150 155)" },
-                  { key: "violet", color: "oklch(0.58 0.150 290)" },
-                  { key: "rose", color: "oklch(0.65 0.200 15)" },
-                  { key: "amber", color: "oklch(0.72 0.160 75)" },
-                  { key: "cyan", color: "oklch(0.62 0.150 200)" },
-                  { key: "teal", color: "oklch(0.60 0.130 180)" },
-                  { key: "indigo", color: "oklch(0.55 0.180 265)" },
-                ] as const).map((a) => (
-                  <button
-                    key={a.key}
-                    onClick={() => update({ accent: a.key })}
-                    className={cn("w-5 h-5 rounded-full border-2 transition-all", prefs.accent === a.key ? "scale-110 border-foreground" : "border-transparent hover:scale-105")}
-                    style={{ backgroundColor: a.color }}
-                    title={a.key}
-                  />
-                ))}
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-    </div>
+    <button
+      onClick={() => update({ mode: isDark ? "light" : "dark" })}
+      className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+      aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+      title={isDark ? "Switch to light theme" : "Switch to dark theme"}
+    >
+      {isDark ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
+    </button>
   );
 }

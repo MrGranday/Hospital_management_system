@@ -52,10 +52,11 @@ type TabKey = typeof TABS[number]["key"];
 export default function EMR() {
   const { openModal, pushToast, livePatients, liveNotes } = useAppStore();
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
-  const [patientId, setPatientId] = useState<string>(PATIENTS[0].id);
+  const firstPatient = PATIENTS[0]!;
+  const [patientId, setPatientId] = useState<string>(firstPatient.id);
   // Merge live + static patients (live first)
   const allPatients: Patient[] = [...livePatients, ...PATIENTS];
-  const patient = allPatients.find((p) => p.id === patientId) ?? PATIENTS[0];
+  const patient = allPatients.find((p) => p.id === patientId) ?? firstPatient;
 
   const handleExport = () => {
     const liveNotesForPatient = liveNotes.filter((n) => n.patientId === patient.id);
