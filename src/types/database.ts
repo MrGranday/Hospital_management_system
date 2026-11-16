@@ -1,9 +1,53 @@
-﻿
+
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
   
-  "public": {
+  "audit": {
+          Tables: {
+            "events": {
+                  Row: {
+                    "action": string,"actor_id": string | null,"actor_role": string | null,"after": Json | null,"before": Json | null,"hospital_id": string | null,"id": number,"ip": unknown,"occurred_at": string,"reason": string | null,"record_id": string | null,"request_id": string | null,"table_name": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "action": string,"actor_id"?: string | null,"actor_role"?: string | null,"after"?: Json | null,"before"?: Json | null,"hospital_id"?: string | null,"id"?: never,"ip"?: unknown,"occurred_at"?: string,"reason"?: string | null,"record_id"?: string | null,"request_id"?: string | null,"table_name": string
+                  }
+                  Update: {
+                    "action"?: string,"actor_id"?: string | null,"actor_role"?: string | null,"after"?: Json | null,"before"?: Json | null,"hospital_id"?: string | null,"id"?: never,"ip"?: unknown,"occurred_at"?: string,"reason"?: string | null,"record_id"?: string | null,"request_id"?: string | null,"table_name"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"events_default": {
+                  Row: {
+                    "action": string,"actor_id": string | null,"actor_role": string | null,"after": Json | null,"before": Json | null,"hospital_id": string | null,"id": number,"ip": unknown,"occurred_at": string,"reason": string | null,"record_id": string | null,"request_id": string | null,"table_name": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "action": string,"actor_id"?: string | null,"actor_role"?: string | null,"after"?: Json | null,"before"?: Json | null,"hospital_id"?: string | null,"id"?: never,"ip"?: unknown,"occurred_at"?: string,"reason"?: string | null,"record_id"?: string | null,"request_id"?: string | null,"table_name": string
+                  }
+                  Update: {
+                    "action"?: string,"actor_id"?: string | null,"actor_role"?: string | null,"after"?: Json | null,"before"?: Json | null,"hospital_id"?: string | null,"id"?: never,"ip"?: unknown,"occurred_at"?: string,"reason"?: string | null,"record_id"?: string | null,"request_id"?: string | null,"table_name"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                }
+          }
+          Views: {
+            [_ in never]: never
+          }
+          Functions: {
+            [_ in never]: never
+          }
+          Enums: {
+            [_ in never]: never
+          }
+          CompositeTypes: {
+            [_ in never]: never
+          }
+        },"public": {
           Tables: {
             "hospital_counters": {
                   Row: {
@@ -161,6 +205,11 @@ isOneToOne: false
           Functions: {
             "custom_access_token_hook":
 { Args: { "event": Json }; Returns: Json
+                           },
+"list_platform_audit_events":
+{ Args: { "p_limit"?: number }; Returns: {
+              "action": string,"actor_role": string,"hospital_id": string,"id": number,"occurred_at": string,"record_id": string,"table_name": string
+            }[]
                            }
           }
           Enums: {
@@ -278,7 +327,11 @@ export type CompositeTypes<
   : never
 
 export const Constants = {
-  "public": {
+  "audit": {
+          Enums: {
+            
+          }
+        },"public": {
           Enums: {
             
           }

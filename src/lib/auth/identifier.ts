@@ -4,6 +4,8 @@ import { z } from "zod";
 // hospital code and username, so the server derives the internal address.
 // The `.invalid` TLD can never receive mail (RFC 2606).
 export const LOGIN_IDENTIFIER_DOMAIN = "medicore.invalid";
+export const PLATFORM_HOSPITAL_CODE = "platform";
+export const RESERVED_HOSPITAL_CODES = new Set([PLATFORM_HOSPITAL_CODE]);
 
 export const hospitalCodeSchema = z
   .string()

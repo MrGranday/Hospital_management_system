@@ -56,8 +56,20 @@ export default async function proxy(request: NextRequest): Promise<NextResponse>
     return redirectTo(request, response, "/change-password");
   }
 
-  if (!mustChangePassword && (pathname === "/login" || pathname === "/change-password")) {
+  const role = typeof user.app_metadata.role === "string" ? user.app_metadata.role : "";
+  const isSuperAdmin = role === "super_admin";
+  const isPlatformPath = pathname === "/platform" || pathname.startsWith("/platform/");
+
+  if (!mustChangePassword && isSuperAdmin && !isPlatformPath && pathname !== "/change-password") {
+    return redirectTo(request, response, "/platform");
+  }
+
+  if (!isSuperAdmin && isPlatformPath) {
     return redirectTo(request, response, "/");
+  }
+
+  if (!mustChangePassword && (pathname === "/login" || pathname === "/change-password")) {
+    return redirectTo(request, response, isSuperAdmin ? "/platform" : "/");
   }
 
   return response;

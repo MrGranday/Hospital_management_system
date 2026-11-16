@@ -11,7 +11,15 @@ export const metadata: Metadata = {
 
 export default async function LoginPage() {
   const context = await getAuthContext();
-  if (context) redirect(context.mustChangePassword ? "/change-password" : "/");
+  if (context) {
+    redirect(
+      context.mustChangePassword
+        ? "/change-password"
+        : context.role === "super_admin"
+          ? "/platform"
+          : "/",
+    );
+  }
 
   return <LoginForm />;
 }

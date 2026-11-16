@@ -8,6 +8,7 @@ export default async function Home() {
   const context = await getAuthContext();
   if (!context) redirect("/login");
   if (context.mustChangePassword) redirect("/change-password");
+  if (context.role === "super_admin") redirect("/platform");
 
   return (
     <HomeClient
