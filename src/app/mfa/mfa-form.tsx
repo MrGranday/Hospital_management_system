@@ -19,11 +19,15 @@ function readInlineSvg(value: string): string | null {
   if (!trimmed.startsWith("data:image/svg+xml")) return null;
 
   const payload = trimmed.slice(trimmed.indexOf(",") + 1);
+  let markup = payload;
   try {
-    return decodeURIComponent(payload);
+    markup = decodeURIComponent(payload);
   } catch {
-    return payload;
+    // The payload is not URI-encoded; use it as-is.
   }
+
+  const svgStart = markup.indexOf("<svg");
+  return svgStart === -1 ? null : markup.slice(svgStart);
 }
 
 function QrCode({ value }: { value: string }) {
