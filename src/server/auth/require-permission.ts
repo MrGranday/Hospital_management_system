@@ -1,5 +1,6 @@
 import "server-only";
 
+import { isMfaSatisfied } from "@/lib/auth/mfa";
 import { getAuthContext, type AuthContext } from "@/server/auth/session";
 
 export class UnauthorizedError extends Error {
@@ -26,6 +27,14 @@ export class PasswordChangeRequiredError extends Error {
   }
 }
 
+export class MfaRequiredError extends Error {
+  readonly code = "MFA_REQUIRED";
+
+  constructor() {
+    super("Multi-factor authentication required");
+  }
+}
+
 export async function requireAuthenticatedUser(): Promise<AuthContext> {
   const context = await getAuthContext();
   if (!context) throw new UnauthorizedError();
@@ -36,6 +45,7 @@ export async function requirePermission(permission: string): Promise<AuthContext
   const context = await requireAuthenticatedUser();
   if (!context.permissions.includes(permission)) throw new ForbiddenError(permission);
   if (context.mustChangePassword) throw new PasswordChangeRequiredError();
+  if (!isMfaSatisfied(context.role, context.aal)) throw new MfaRequiredError();
   return context;
 }
 

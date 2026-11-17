@@ -5,6 +5,7 @@ export type SessionClaims = {
   permissions: readonly string[];
   mustChangePassword: boolean;
   username: string;
+  aal: string | null;
 };
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -37,5 +38,6 @@ export function parseSessionClaims(claims: unknown): SessionClaims | null {
     permissions: readPermissions(appMetadata.permissions),
     mustChangePassword: appMetadata.must_change_password === true,
     username,
+    aal: readString(payload.aal),
   };
 }
