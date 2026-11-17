@@ -4,6 +4,7 @@ import { parseSessionClaims } from "./claims";
 
 const baseClaims = {
   sub: "9f1f4f2e-0f1a-4c42-9a4f-1c2d3e4f5a6b",
+  aal: "aal1",
   email: "admin@platform.medicore.invalid",
   app_metadata: {
     hospital_id: "3b3a1c1e-5a6f-4c1d-8e2f-7a8b9c0d1e2f",
@@ -23,6 +24,7 @@ describe("parseSessionClaims", () => {
       permissions: ["patients:read", "users:read"],
       mustChangePassword: true,
       username: "admin",
+      aal: "aal1",
     });
   });
 
@@ -51,6 +53,12 @@ describe("parseSessionClaims", () => {
     const absent = { ...baseClaims, app_metadata: { ...baseClaims.app_metadata, must_change_password: undefined } };
     expect(parseSessionClaims(truthy)?.mustChangePassword).toBe(false);
     expect(parseSessionClaims(absent)?.mustChangePassword).toBe(false);
+  });
+
+  it("reads the authenticator assurance level", () => {
+    expect(parseSessionClaims(baseClaims)?.aal).toBe("aal1");
+    expect(parseSessionClaims({ ...baseClaims, aal: "aal2" })?.aal).toBe("aal2");
+    expect(parseSessionClaims({ ...baseClaims, aal: "" })?.aal).toBeNull();
   });
 
   it("ignores malformed permissions and missing app_metadata", () => {

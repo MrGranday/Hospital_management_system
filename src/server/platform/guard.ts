@@ -1,5 +1,6 @@
 import "server-only";
 
+import { isMfaSatisfied } from "@/lib/auth/mfa";
 import { getAuthContext, type AuthContext } from "@/server/auth/session";
 
 // Super admin powers come from the JWT claims issued by the access-token hook.
@@ -8,5 +9,6 @@ export async function getSuperAdminContext(): Promise<AuthContext | null> {
   const context = await getAuthContext();
   if (!context) return null;
   if (context.role !== "super_admin") return null;
+  if (!isMfaSatisfied(context.role, context.aal)) return null;
   return context;
 }

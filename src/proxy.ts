@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { parseSessionClaims } from "@/lib/auth/claims";
+import { isMfaSatisfied } from "@/lib/auth/mfa";
 import { getPublicEnv } from "@/lib/env";
 
 const PUBLIC_PATHS = new Set(["/login"]);
@@ -56,8 +57,18 @@ export default async function proxy(request: NextRequest): Promise<NextResponse>
     return redirectTo(request, response, "/change-password");
   }
 
+  const mfaSatisfied = isMfaSatisfied(claims.role, claims.aal);
+
+  if (!mfaSatisfied && pathname !== "/mfa") {
+    return redirectTo(request, response, "/mfa");
+  }
+
   const isSuperAdmin = claims.role === "super_admin";
   const isPlatformPath = pathname === "/platform" || pathname.startsWith("/platform/");
+
+  if (mfaSatisfied && pathname === "/mfa") {
+    return redirectTo(request, response, isSuperAdmin ? "/platform" : "/");
+  }
 
   if (!mustChangePassword && isSuperAdmin && !isPlatformPath && pathname !== "/change-password") {
     return redirectTo(request, response, "/platform");
