@@ -3,43 +3,17 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 export type Database = {
   
-  "audit": {
+  "graphql_public": {
           Tables: {
-            "events": {
-                  Row: {
-                    "action": string,"actor_id": string | null,"actor_role": string | null,"after": Json | null,"before": Json | null,"hospital_id": string | null,"id": number,"ip": unknown,"occurred_at": string,"reason": string | null,"record_id": string | null,"request_id": string | null,"table_name": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "action": string,"actor_id"?: string | null,"actor_role"?: string | null,"after"?: Json | null,"before"?: Json | null,"hospital_id"?: string | null,"id"?: never,"ip"?: unknown,"occurred_at"?: string,"reason"?: string | null,"record_id"?: string | null,"request_id"?: string | null,"table_name": string
-                  }
-                  Update: {
-                    "action"?: string,"actor_id"?: string | null,"actor_role"?: string | null,"after"?: Json | null,"before"?: Json | null,"hospital_id"?: string | null,"id"?: never,"ip"?: unknown,"occurred_at"?: string,"reason"?: string | null,"record_id"?: string | null,"request_id"?: string | null,"table_name"?: string
-                  }
-                  Relationships: [
-                    
-                  ]
-                },"events_default": {
-                  Row: {
-                    "action": string,"actor_id": string | null,"actor_role": string | null,"after": Json | null,"before": Json | null,"hospital_id": string | null,"id": number,"ip": unknown,"occurred_at": string,"reason": string | null,"record_id": string | null,"request_id": string | null,"table_name": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "action": string,"actor_id"?: string | null,"actor_role"?: string | null,"after"?: Json | null,"before"?: Json | null,"hospital_id"?: string | null,"id"?: never,"ip"?: unknown,"occurred_at"?: string,"reason"?: string | null,"record_id"?: string | null,"request_id"?: string | null,"table_name": string
-                  }
-                  Update: {
-                    "action"?: string,"actor_id"?: string | null,"actor_role"?: string | null,"after"?: Json | null,"before"?: Json | null,"hospital_id"?: string | null,"id"?: never,"ip"?: unknown,"occurred_at"?: string,"reason"?: string | null,"record_id"?: string | null,"request_id"?: string | null,"table_name"?: string
-                  }
-                  Relationships: [
-                    
-                  ]
-                }
+            [_ in never]: never
           }
           Views: {
             [_ in never]: never
           }
           Functions: {
-            [_ in never]: never
+            "graphql":
+{ Args: { "extensions"?: Json,"operationName"?: string,"query"?: string,"variables"?: Json }; Returns: Json
+                           }
           }
           Enums: {
             [_ in never]: never
@@ -206,6 +180,11 @@ isOneToOne: false
             "custom_access_token_hook":
 { Args: { "event": Json }; Returns: Json
                            },
+"list_hospital_audit_events":
+{ Args: { "p_action"?: string,"p_limit"?: number,"p_offset"?: number,"p_table"?: string }; Returns: {
+              "action": string,"actor_id": string,"actor_role": string,"after": Json,"before": Json,"id": number,"occurred_at": string,"reason": string,"record_id": string,"table_name": string,"total_count": number
+            }[]
+                           },
 "list_platform_audit_events":
 { Args: { "p_limit"?: number }; Returns: {
               "action": string,"actor_role": string,"hospital_id": string,"id": number,"occurred_at": string,"record_id": string,"table_name": string
@@ -327,7 +306,7 @@ export type CompositeTypes<
   : never
 
 export const Constants = {
-  "audit": {
+  "graphql_public": {
           Enums: {
             
           }
