@@ -11,6 +11,7 @@ export type AuthContext = {
   mustChangePassword: boolean;
   username: string;
   fullName: string;
+  aal: string | null;
 };
 
 export async function getAuthContext(): Promise<AuthContext | null> {
@@ -36,5 +37,6 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     mustChangePassword: profile?.must_change_password ?? claims.mustChangePassword,
     username: profile?.username ?? claims.username,
     fullName: profile?.full_name ?? claims.username,
+    aal: claims.aal,
   };
 }
