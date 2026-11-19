@@ -96,6 +96,34 @@ export const patientMergeSchema = z
 
 export type PatientMergeInput = z.infer<typeof patientMergeSchema>;
 
+export const DOCUMENT_MAX_BYTES = 10 * 1024 * 1024;
+
+export const DOCUMENT_MIME_TYPES = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+] as const;
+
+export const patientDocumentUploadSchema = z.object({
+  patientId: patientIdSchema,
+  file: z
+    .instanceof(File, { message: "Choose a document to upload." })
+    .refine((file) => file.size > 0, { message: "The file is empty." })
+    .refine((file) => file.size <= DOCUMENT_MAX_BYTES, {
+      message: "Documents must be 10 MB or smaller.",
+    })
+    .refine(
+      (file) => DOCUMENT_MIME_TYPES.includes(file.type as (typeof DOCUMENT_MIME_TYPES)[number]),
+      { message: "Use a PDF, JPEG, PNG or WebP file." },
+    ),
+});
+
+export const patientDocumentIdSchema = z.object({
+  patientId: patientIdSchema,
+  documentId: z.string().uuid("Unknown document."),
+});
+
 export const patientQuerySchema = z.object({
   q: z
     .string()
