@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  DOCUMENT_MAX_BYTES,
   patientCreateSchema,
+  patientDocumentIdSchema,
+  patientDocumentUploadSchema,
   patientListHref,
   patientMergeSchema,
   patientQuerySchema,
@@ -85,5 +88,36 @@ describe("patient schema", () => {
     expect(
       patientMergeSchema.safeParse({ ...ids, targetId: ids.sourceId, reason: "Same person" }).success,
     ).toBe(false);
+  });
+
+  it("validates document type, size and ids", () => {
+    const patientId = "5f7b2c1e-5a65-4f6d-9d5e-0d9b1c8a7e64";
+    const pdf = new File([new Uint8Array([1, 2, 3])], "scan.pdf", {
+      type: "application/pdf",
+    });
+    expect(patientDocumentUploadSchema.safeParse({ patientId, file: pdf }).success).toBe(true);
+    expect(
+      patientDocumentUploadSchema.safeParse({
+        patientId,
+        file: new File(["text"], "notes.txt", { type: "text/plain" }),
+      }).success,
+    ).toBe(false);
+    expect(
+      patientDocumentUploadSchema.safeParse({
+        patientId,
+        file: new File([], "empty.pdf", { type: "application/pdf" }),
+      }).success,
+    ).toBe(false);
+    expect(
+      patientDocumentUploadSchema.safeParse({
+        patientId,
+        file: new File([new Uint8Array(DOCUMENT_MAX_BYTES + 1)], "big.pdf", {
+          type: "application/pdf",
+        }),
+      }).success,
+    ).toBe(false);
+    expect(
+      patientDocumentIdSchema.safeParse({ patientId, documentId: patientId }).success,
+    ).toBe(true);
   });
 });

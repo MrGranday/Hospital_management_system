@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 
 import {
   patientCreateSchema,
+  patientDocumentIdSchema,
+  patientDocumentUploadSchema,
   patientIdSchema,
   patientMergeSchema,
   patientUpdateSchema,
@@ -173,4 +175,107 @@ export async function mergePatientAction(
   revalidatePath(`/patients/${parsed.data.sourceId}`);
   revalidatePath(`/patients/${parsed.data.targetId}`);
   redirect(`/patients/${parsed.data.targetId}`);
+}
+
+const DOCUMENT_EXTENSIONS: Record<string, string> = {
+  "application/pdf": "pdf",
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
+
+function safeFileName(name: string): string {
+  const cleaned = name.replace(/[\\/\u0000-\u001f]/g, " ").trim().slice(0, 160);
+  return cleaned || "document";
+}
+
+export type DocumentState = { error: string } | undefined;
+
+export async function uploadPatientDocumentAction(
+  _previous: DocumentState,
+  formData: FormData,
+): Promise<DocumentState> {
+  const actor = await getActor("patients:update");
+  if (!actor) return { error: NOT_AUTHORIZED };
+
+  const parsed = patientDocumentUploadSchema.safeParse({
+    patientId: formData.get("patientId"),
+    file: formData.get("file"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Choose a valid document." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data: patient } = await supabase
+    .from("patients")
+    .select("id")
+    .eq("id", parsed.data.patientId)
+    .eq("hospital_id", actor.hospitalId)
+    .maybeSingle();
+
+  if (!patient) return { error: "Unknown patient." };
+
+  const file = parsed.data.file;
+  const extension = DOCUMENT_EXTENSIONS[file.type] ?? "bin";
+  const storagePath = `${actor.hospitalId}/${patient.id}/${crypto.randomUUID()}.${extension}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("patient-documents")
+    .upload(storagePath, file, { contentType: file.type, upsert: false });
+
+  if (uploadError) return { error: "Could not upload the document. Try again." };
+
+  const { error: insertError } = await supabase.from("patient_documents").insert({
+    hospital_id: actor.hospitalId,
+    patient_id: patient.id,
+    file_name: safeFileName(file.name),
+    mime_type: file.type,
+    size_bytes: file.size,
+    storage_path: storagePath,
+  });
+
+  if (insertError) {
+    await supabase.storage.from("patient-documents").remove([storagePath]);
+    return { error: "Could not save the document. Try again." };
+  }
+
+  revalidatePath(`/patients/${patient.id}`);
+  redirect(`/patients/${patient.id}#documents`);
+}
+
+export async function deletePatientDocumentAction(
+  _previous: DocumentState,
+  formData: FormData,
+): Promise<DocumentState> {
+  const actor = await getActor("patients:update");
+  if (!actor) return { error: NOT_AUTHORIZED };
+
+  const parsed = patientDocumentIdSchema.safeParse({
+    patientId: formData.get("patientId"),
+    documentId: formData.get("documentId"),
+  });
+  if (!parsed.success) return { error: "Unknown document." };
+
+  const supabase = await createSupabaseServerClient();
+  const { data: document } = await supabase
+    .from("patient_documents")
+    .select("id, storage_path")
+    .eq("id", parsed.data.documentId)
+    .eq("patient_id", parsed.data.patientId)
+    .eq("hospital_id", actor.hospitalId)
+    .maybeSingle();
+
+  if (!document) return { error: "Unknown document." };
+
+  const { data: deleted, error } = await supabase.rpc("delete_patient_document", {
+    p_document_id: document.id,
+  });
+
+  if (error || !deleted) return { error: "Could not delete the document. Try again." };
+
+  await supabase.storage.from("patient-documents").remove([document.storage_path]);
+
+  revalidatePath(`/patients/${parsed.data.patientId}`);
+  redirect(`/patients/${parsed.data.patientId}#documents`);
 }

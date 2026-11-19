@@ -7,6 +7,8 @@ import { getAuthContext } from "@/server/auth/session";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 
 import ArchivePatientButton from "./archive-patient-button";
+import DeleteDocumentButton from "./delete-document-button";
+import DocumentUploadForm from "./document-upload-form";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +27,12 @@ function formatTimestamp(value: string): string {
     dateStyle: "medium",
     timeStyle: "short",
   });
+}
+
+function formatBytes(value: number): string {
+  if (value < 1024) return `${value} B`;
+  if (value < 1024 * 1024) return `${Math.round(value / 1024)} KB`;
+  return `${(value / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export default async function PatientDetailPage({
@@ -64,6 +72,13 @@ export default async function PatientDetailPage({
     .from("patient_merges")
     .select("id, source_mrn, source_full_name, reason, created_at")
     .eq("target_patient_id", patient.id)
+    .eq("hospital_id", context.hospitalId)
+    .order("created_at", { ascending: false });
+
+  const { data: documents } = await supabase
+    .from("patient_documents")
+    .select("id, file_name, mime_type, size_bytes, created_at")
+    .eq("patient_id", patient.id)
     .eq("hospital_id", context.hospitalId)
     .order("created_at", { ascending: false });
 
@@ -166,6 +181,54 @@ export default async function PatientDetailPage({
           </ul>
         </section>
       ) : null}
+
+      <section id="documents" className="rounded-lg border border-border bg-card p-6">
+        <h2 className="text-sm font-semibold">Documents</h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Private files linked to this patient. Downloads use short-lived signed links and are
+          recorded in the audit log.
+        </p>
+
+        {canUpdate ? (
+          <div className="mt-4">
+            <DocumentUploadForm patientId={patient.id} />
+          </div>
+        ) : null}
+
+        {!documents || documents.length === 0 ? (
+          <p className="mt-4 text-sm text-muted-foreground">No documents uploaded.</p>
+        ) : (
+          <ul className="mt-4 divide-y divide-border text-sm">
+            {documents.map((document) => (
+              <li key={document.id} className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                <div className="min-w-0">
+                  <a
+                    href={`/patients/${patient.id}/documents/${document.id}`}
+                    className="block truncate font-medium hover:underline"
+                  >
+                    {document.file_name}
+                  </a>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {formatBytes(document.size_bytes)} · uploaded{" "}
+                    {formatTimestamp(document.created_at)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <a
+                    href={`/patients/${patient.id}/documents/${document.id}`}
+                    className="text-xs font-medium hover:underline"
+                  >
+                    Download
+                  </a>
+                  {canUpdate ? (
+                    <DeleteDocumentButton patientId={patient.id} documentId={document.id} />
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <p className="text-xs text-muted-foreground">
         Last updated {formatTimestamp(patient.updated_at)}. Archiving removes the patient from
