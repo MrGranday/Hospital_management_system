@@ -77,6 +77,32 @@ isOneToOne: true
                   Relationships: [
                     
                   ]
+                },"patients": {
+                  Row: {
+                    "address": string | null,"blood_group": string | null,"created_at": string,"created_by": string | null,"date_of_birth": string | null,"deleted_at": string | null,"email": string | null,"full_name": string,"hospital_id": string,"id": string,"merged_into_id": string | null,"mrn": string,"notes": string | null,"phone": string | null,"sex": string,"updated_at": string,"updated_by": string | null,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "address"?: string | null,"blood_group"?: string | null,"created_at"?: string,"created_by"?: string | null,"date_of_birth"?: string | null,"deleted_at"?: string | null,"email"?: string | null,"full_name": string,"hospital_id": string,"id"?: string,"merged_into_id"?: string | null,"mrn": string,"notes"?: string | null,"phone"?: string | null,"sex"?: string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Update: {
+                    "address"?: string | null,"blood_group"?: string | null,"created_at"?: string,"created_by"?: string | null,"date_of_birth"?: string | null,"deleted_at"?: string | null,"email"?: string | null,"full_name"?: string,"hospital_id"?: string,"id"?: string,"merged_into_id"?: string | null,"mrn"?: string,"notes"?: string | null,"phone"?: string | null,"sex"?: string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "patients_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+      referencedRelation: "hospitals"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "patients_merged_into_id_fkey"
+      columns: ["merged_into_id"]
+isOneToOne: false
+      referencedRelation: "patients"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"permissions": {
                   Row: {
                     "action": string,"created_at": string,"description": string | null,"id": string,"key": string,"module": string
@@ -177,7 +203,10 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "custom_access_token_hook":
+            "archive_patient":
+{ Args: { "p_patient_id": string }; Returns: boolean
+                           },
+"custom_access_token_hook":
 { Args: { "event": Json }; Returns: Json
                            },
 "list_hospital_audit_events":
@@ -185,11 +214,43 @@ isOneToOne: false
               "action": string,"actor_id": string,"actor_role": string,"after": Json,"before": Json,"id": number,"occurred_at": string,"reason": string,"record_id": string,"table_name": string,"total_count": number
             }[]
                            },
+"list_patients":
+{ Args: { "p_limit"?: number,"p_offset"?: number,"p_query"?: string }; Returns: {
+              "created_at": string,"date_of_birth": string,"full_name": string,"id": string,"mrn": string,"phone": string,"sex": string,"total_count": number
+            }[]
+                           },
 "list_platform_audit_events":
 { Args: { "p_limit"?: number }; Returns: {
               "action": string,"actor_role": string,"hospital_id": string,"id": number,"occurred_at": string,"record_id": string,"table_name": string
             }[]
-                           }
+                           },
+"register_patient":
+{ Args: { "p_address"?: string,"p_blood_group"?: string,"p_date_of_birth"?: string,"p_email"?: string,"p_full_name": string,"p_notes"?: string,"p_phone"?: string,"p_sex"?: string }; Returns: {
+              "address": string | null,
+"blood_group": string | null,
+"created_at": string,
+"created_by": string | null,
+"date_of_birth": string | null,
+"deleted_at": string | null,
+"email": string | null,
+"full_name": string,
+"hospital_id": string,
+"id": string,
+"merged_into_id": string | null,
+"mrn": string,
+"notes": string | null,
+"phone": string | null,
+"sex": string,
+"updated_at": string,
+"updated_by": string | null,
+"version": number
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "patients"
+        isOneToOne: true
+        isSetofReturn: false
+      } }
           }
           Enums: {
             [_ in never]: never

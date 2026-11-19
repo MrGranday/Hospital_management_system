@@ -14,6 +14,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
   return (
     <HospitalShell
       fullName={context.fullName}
+      showPatients={hasPermission(context, "patients:read")}
       showStaff={hasPermission(context, "users:read")}
       showAudit={hasPermission(context, "audit:read")}
     >
