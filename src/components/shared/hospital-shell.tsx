@@ -4,11 +4,13 @@ import { signOutAction } from "@/server/auth/actions";
 
 export function HospitalShell({
   fullName,
+  showPatients,
   showStaff,
   showAudit,
   children,
 }: {
   fullName: string;
+  showPatients: boolean;
   showStaff: boolean;
   showAudit: boolean;
   children: React.ReactNode;
@@ -25,6 +27,11 @@ export function HospitalShell({
               <Link href="/" className="text-muted-foreground hover:text-foreground">
                 Home
               </Link>
+              {showPatients ? (
+                <Link href="/patients" className="text-muted-foreground hover:text-foreground">
+                  Patients
+                </Link>
+              ) : null}
               {showStaff ? (
                 <Link href="/staff" className="text-muted-foreground hover:text-foreground">
                   Staff
