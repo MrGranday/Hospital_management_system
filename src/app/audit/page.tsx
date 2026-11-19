@@ -20,6 +20,7 @@ const TABLE_LABELS: Record<(typeof AUDIT_TABLES)[number], string> = {
   "public.hospital_settings": "Hospital settings",
   "public.user_roles": "Staff role",
   "public.patients": "Patient",
+  "public.patient_merges": "Patient merge",
 };
 
 const selectClassName =

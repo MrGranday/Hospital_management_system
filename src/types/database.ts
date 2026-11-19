@@ -77,6 +77,38 @@ isOneToOne: true
                   Relationships: [
                     
                   ]
+                },"patient_merges": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"hospital_id": string,"id": string,"reason": string,"source_full_name": string,"source_mrn": string,"source_patient_id": string,"target_patient_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"hospital_id": string,"id"?: string,"reason": string,"source_full_name": string,"source_mrn": string,"source_patient_id": string,"target_patient_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"hospital_id"?: string,"id"?: string,"reason"?: string,"source_full_name"?: string,"source_mrn"?: string,"source_patient_id"?: string,"target_patient_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "patient_merges_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+      referencedRelation: "hospitals"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "patient_merges_source_patient_id_fkey"
+      columns: ["source_patient_id"]
+isOneToOne: false
+      referencedRelation: "patients"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "patient_merges_target_patient_id_fkey"
+      columns: ["target_patient_id"]
+isOneToOne: false
+      referencedRelation: "patients"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"patients": {
                   Row: {
                     "address": string | null,"blood_group": string | null,"created_at": string,"created_by": string | null,"date_of_birth": string | null,"deleted_at": string | null,"email": string | null,"full_name": string,"hospital_id": string,"id": string,"merged_into_id": string | null,"mrn": string,"notes": string | null,"phone": string | null,"sex": string,"updated_at": string,"updated_by": string | null,"version": number
@@ -223,6 +255,9 @@ isOneToOne: false
 { Args: { "p_limit"?: number }; Returns: {
               "action": string,"actor_role": string,"hospital_id": string,"id": number,"occurred_at": string,"record_id": string,"table_name": string
             }[]
+                           },
+"merge_patients":
+{ Args: { "p_reason": string,"p_source_id": string,"p_target_id": string }; Returns: string
                            },
 "register_patient":
 { Args: { "p_address"?: string,"p_blood_group"?: string,"p_date_of_birth"?: string,"p_email"?: string,"p_full_name": string,"p_notes"?: string,"p_phone"?: string,"p_sex"?: string }; Returns: {

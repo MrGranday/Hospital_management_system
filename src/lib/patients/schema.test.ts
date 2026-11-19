@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   patientCreateSchema,
   patientListHref,
+  patientMergeSchema,
   patientQuerySchema,
   patientUpdateSchema,
 } from "./schema";
@@ -70,5 +71,19 @@ describe("patient schema", () => {
     expect(query).toEqual({ q: "amina", page: 2 });
     expect(patientListHref(query, 3)).toBe("/patients?q=amina&page=3");
     expect(patientListHref({ page: 1 }, 1)).toBe("/patients");
+  });
+
+  it("requires a distinct target and a reason when merging", () => {
+    const ids = {
+      sourceId: "5f7b2c1e-5a65-4f6d-9d5e-0d9b1c8a7e64",
+      targetId: "5f7b2c1e-5a65-4f6d-9d5e-0d9b1c8a7e65",
+    };
+    expect(patientMergeSchema.safeParse({ ...ids, reason: "Same person, duplicate file" }).success).toBe(
+      true,
+    );
+    expect(patientMergeSchema.safeParse({ ...ids, reason: "dup" }).success).toBe(false);
+    expect(
+      patientMergeSchema.safeParse({ ...ids, targetId: ids.sourceId, reason: "Same person" }).success,
+    ).toBe(false);
   });
 });
