@@ -6,6 +6,7 @@ export const AUDIT_TABLES = [
   "public.hospital_settings",
   "public.user_roles",
   "public.patients",
+  "public.patient_merges",
 ] as const;
 
 export const AUDIT_ACTIONS = ["INSERT", "UPDATE", "DELETE"] as const;
