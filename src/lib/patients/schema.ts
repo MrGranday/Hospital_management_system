@@ -79,6 +79,23 @@ export type PatientUpdateInput = z.infer<typeof patientUpdateSchema>;
 
 export const patientIdSchema = z.string().uuid("Unknown patient.");
 
+export const patientMergeSchema = z
+  .object({
+    sourceId: patientIdSchema,
+    targetId: patientIdSchema,
+    reason: z
+      .string()
+      .trim()
+      .min(5, "Give a short reason for the merge.")
+      .max(500, "Use 500 characters or fewer."),
+  })
+  .refine((value) => value.sourceId !== value.targetId, {
+    message: "Choose a different patient to merge into.",
+    path: ["targetId"],
+  });
+
+export type PatientMergeInput = z.infer<typeof patientMergeSchema>;
+
 export const patientQuerySchema = z.object({
   q: z
     .string()

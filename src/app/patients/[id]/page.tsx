@@ -60,8 +60,16 @@ export default async function PatientDetailPage({
 
   if (!patient) notFound();
 
+  const { data: mergedRecords } = await supabase
+    .from("patient_merges")
+    .select("id, source_mrn, source_full_name, reason, created_at")
+    .eq("target_patient_id", patient.id)
+    .eq("hospital_id", context.hospitalId)
+    .order("created_at", { ascending: false });
+
   const canUpdate = hasPermission(context, "patients:update");
   const canArchive = hasPermission(context, "patients:archive");
+  const canMerge = hasPermission(context, "patients:merge");
 
   return (
     <div className="space-y-6">
@@ -83,6 +91,14 @@ export default async function PatientDetailPage({
               className="inline-flex h-8 items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium hover:bg-accent"
             >
               Edit details
+            </Link>
+          ) : null}
+          {canMerge ? (
+            <Link
+              href={`/patients/${patient.id}/merge`}
+              className="inline-flex h-8 items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium hover:bg-accent"
+            >
+              Merge duplicate
             </Link>
           ) : null}
           {canArchive ? <ArchivePatientButton patientId={patient.id} /> : null}
@@ -126,6 +142,30 @@ export default async function PatientDetailPage({
           </div>
         </dl>
       </section>
+
+      {mergedRecords && mergedRecords.length > 0 ? (
+        <section className="rounded-lg border border-border bg-card p-6">
+          <h2 className="text-sm font-semibold">Merged duplicates</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            These records were archived and linked to this patient.
+          </p>
+          <ul className="mt-4 divide-y divide-border text-sm">
+            {mergedRecords.map((merge) => (
+              <li key={merge.id} className="py-3 first:pt-0 last:pb-0">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <span className="font-medium">{merge.source_full_name}</span>
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {merge.source_mrn}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {merge.reason} · merged {formatTimestamp(merge.created_at)}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <p className="text-xs text-muted-foreground">
         Last updated {formatTimestamp(patient.updated_at)}. Archiving removes the patient from

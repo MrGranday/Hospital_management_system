@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import {
   patientCreateSchema,
   patientIdSchema,
+  patientMergeSchema,
   patientUpdateSchema,
 } from "@/lib/patients/schema";
 import { requirePermission } from "@/server/auth/require-permission";
@@ -137,4 +138,39 @@ export async function archivePatientAction(
 
   revalidatePath("/patients");
   redirect("/patients");
+}
+
+export type MergePatientState = { error: string } | undefined;
+
+export async function mergePatientAction(
+  _previous: MergePatientState,
+  formData: FormData,
+): Promise<MergePatientState> {
+  const actor = await getActor("patients:merge");
+  if (!actor) return { error: NOT_AUTHORIZED };
+
+  const parsed = patientMergeSchema.safeParse({
+    sourceId: formData.get("sourceId"),
+    targetId: formData.get("targetId"),
+    reason: formData.get("reason"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Check the merge details." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("merge_patients", {
+    p_source_id: parsed.data.sourceId,
+    p_target_id: parsed.data.targetId,
+    p_reason: parsed.data.reason,
+  });
+
+  if (error || !data) {
+    return { error: "Could not merge these patients. Reload and try again." };
+  }
+
+  revalidatePath("/patients");
+  revalidatePath(`/patients/${parsed.data.sourceId}`);
+  revalidatePath(`/patients/${parsed.data.targetId}`);
+  redirect(`/patients/${parsed.data.targetId}`);
 }
