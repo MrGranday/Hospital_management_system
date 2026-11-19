@@ -7,9 +7,10 @@ export const AUDIT_TABLES = [
   "public.user_roles",
   "public.patients",
   "public.patient_merges",
+  "public.patient_documents",
 ] as const;
 
-export const AUDIT_ACTIONS = ["INSERT", "UPDATE", "DELETE"] as const;
+export const AUDIT_ACTIONS = ["INSERT", "UPDATE", "DELETE", "READ"] as const;
 
 export const AUDIT_PAGE_SIZE = 25;
 

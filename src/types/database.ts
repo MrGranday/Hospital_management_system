@@ -77,6 +77,32 @@ isOneToOne: true
                   Relationships: [
                     
                   ]
+                },"patient_documents": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"file_name": string,"hospital_id": string,"id": string,"mime_type": string,"patient_id": string,"size_bytes": number,"storage_path": string,"updated_at": string,"updated_by": string | null,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"file_name": string,"hospital_id": string,"id"?: string,"mime_type": string,"patient_id": string,"size_bytes": number,"storage_path": string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"file_name"?: string,"hospital_id"?: string,"id"?: string,"mime_type"?: string,"patient_id"?: string,"size_bytes"?: number,"storage_path"?: string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "patient_documents_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+      referencedRelation: "hospitals"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "patient_documents_patient_id_fkey"
+      columns: ["patient_id"]
+isOneToOne: false
+      referencedRelation: "patients"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"patient_merges": {
                   Row: {
                     "created_at": string,"created_by": string | null,"hospital_id": string,"id": string,"reason": string,"source_full_name": string,"source_mrn": string,"source_patient_id": string,"target_patient_id": string
@@ -241,6 +267,9 @@ isOneToOne: false
 "custom_access_token_hook":
 { Args: { "event": Json }; Returns: Json
                            },
+"delete_patient_document":
+{ Args: { "p_document_id": string }; Returns: boolean
+                           },
 "list_hospital_audit_events":
 { Args: { "p_action"?: string,"p_limit"?: number,"p_offset"?: number,"p_table"?: string }; Returns: {
               "action": string,"actor_id": string,"actor_role": string,"after": Json,"before": Json,"id": number,"occurred_at": string,"reason": string,"record_id": string,"table_name": string,"total_count": number
@@ -255,6 +284,9 @@ isOneToOne: false
 { Args: { "p_limit"?: number }; Returns: {
               "action": string,"actor_role": string,"hospital_id": string,"id": number,"occurred_at": string,"record_id": string,"table_name": string
             }[]
+                           },
+"log_patient_document_access":
+{ Args: { "p_document_id": string }; Returns: undefined
                            },
 "merge_patients":
 { Args: { "p_reason": string,"p_source_id": string,"p_target_id": string }; Returns: string
