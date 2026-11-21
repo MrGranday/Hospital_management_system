@@ -71,12 +71,12 @@ export default async function LabOrderDetailPage({
   const { data: results } = await supabase
     .from("lab_results")
     .select(
-      "id, lab_order_item_id, result_value, result_unit, reference_range, is_abnormal, status, entered_at, verified, verified_at",
+      "id, lab_order_item_id, result_value, result_unit, reference_range, is_abnormal, status, entered_at, verified_at",
     )
     .eq("hospital_id", hospitalId)
     .order("entered_at", { ascending: true });
 
-  const latestResultByItem = new Map<string, { result_value: string; result_unit: string | null; reference_range: string | null; is_abnormal: boolean | null; status: string; entered_at: string; verified: boolean; verified_at: string | null } | undefined>();
+  const latestResultByItem = new Map<string, { result_value: string; result_unit: string | null; reference_range: string | null; is_abnormal: boolean | null; status: string; entered_at: string; verified_at: string | null } | undefined>();
   items?.forEach((item) => {
     const itemResults = results?.filter((r) => r.lab_order_item_id === item.id);
     latestResultByItem.set(item.id, itemResults?.[itemResults.length - 1]);
@@ -235,7 +235,7 @@ export default async function LabOrderDetailPage({
                         {latestResult?.reference_range || "—"}
                       </td>
                       <td className="px-4 py-3 text-right">
-                        {latestResult?.verified ? (
+                        {latestResult?.verified_at ? (
                           <span className="text-xs text-emerald-700">Yes</span>
                         ) : (
                           <span className="text-xs text-muted-foreground">—</span>

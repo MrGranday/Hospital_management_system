@@ -1,5 +1,98 @@
 -- HR-lite: staff records, shifts, attendance, and leave management.
 
+-- Departments: organizational departments.
+
+create table public.departments (
+  id uuid primary key default gen_random_uuid(),
+  hospital_id uuid not null references public.hospitals (id),
+  name text not null check (btrim(name) <> ''),
+  description text,
+  is_active boolean not null default true,
+  deleted_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  created_by uuid references auth.users (id),
+  updated_by uuid references auth.users (id),
+  version integer not null default 1,
+  constraint departments_name_hospital_key unique (hospital_id, name)
+);
+
+create index departments_hospital_active_idx
+  on public.departments (hospital_id, is_active)
+  where deleted_at is null;
+
+create or replace function private.prepare_department_row()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if tg_op = 'INSERT' then
+    new.created_by := coalesce(auth.uid(), new.created_by);
+    new.updated_by := coalesce(auth.uid(), new.updated_by);
+  else
+    new.hospital_id := old.hospital_id;
+    new.name := old.name;
+    new.description := old.description;
+    new.is_active := old.is_active;
+    new.created_at := old.created_at;
+    new.created_by := old.created_by;
+    new.updated_by := coalesce(auth.uid(), old.updated_by);
+    new.version := old.version + 1;
+  end if;
+  new.updated_at := now();
+  return new;
+end;
+$$;
+
+create trigger departments_prepare
+before insert or update on public.departments
+for each row execute function private.prepare_department_row();
+
+create trigger departments_audit
+after insert or update or delete on public.departments
+for each row execute function private.write_audit_event();
+
+alter table public.departments enable row level security;
+
+create policy departments_select on public.departments
+for select to authenticated
+using (
+  hospital_id = (select private.current_hospital_id())
+  and (select private.has_permission('hr:read'))
+  and deleted_at is null
+);
+
+create policy departments_insert on public.departments
+for insert to authenticated
+with check (
+  hospital_id = (select private.current_hospital_id())
+  and (select private.has_permission('hr:create'))
+);
+
+create policy departments_update on public.departments
+for update to authenticated
+using (
+  hospital_id = (select private.current_hospital_id())
+  and (select private.has_permission('hr:update'))
+  and deleted_at is null
+)
+with check (
+  hospital_id = (select private.current_hospital_id())
+  and (select private.has_permission('hr:update'))
+  and deleted_at is null
+);
+
+revoke all on public.departments from authenticated, anon;
+grant select on public.departments to authenticated;
+grant insert (
+  hospital_id, name, description, is_active
+) on public.departments to authenticated;
+grant update (
+  name, description, is_active
+) on public.departments to authenticated;
+
 -- Staff: extends profiles with HR-specific information.
 
 create table public.staff (
@@ -114,99 +207,6 @@ grant update (
   job_title, department_id, employment_type, termination_date,
   salary_annual_minor, currency, is_active
 ) on public.staff to authenticated;
-
--- Departments: organizational departments.
-
-create table public.departments (
-  id uuid primary key default gen_random_uuid(),
-  hospital_id uuid not null references public.hospitals (id),
-  name text not null check (btrim(name) <> ''),
-  description text,
-  is_active boolean not null default true,
-  deleted_at timestamptz,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  created_by uuid references auth.users (id),
-  updated_by uuid references auth.users (id),
-  version integer not null default 1,
-  constraint departments_name_hospital_key unique (hospital_id, name)
-);
-
-create index departments_hospital_active_idx
-  on public.departments (hospital_id, is_active)
-  where deleted_at is null;
-
-create or replace function private.prepare_department_row()
-returns trigger
-language plpgsql
-security definer
-set search_path = ''
-as $$
-begin
-  if tg_op = 'INSERT' then
-    new.created_by := coalesce(auth.uid(), new.created_by);
-    new.updated_by := coalesce(auth.uid(), new.updated_by);
-  else
-    new.hospital_id := old.hospital_id;
-    new.name := old.name;
-    new.description := old.description;
-    new.is_active := old.is_active;
-    new.created_at := old.created_at;
-    new.created_by := old.created_by;
-    new.updated_by := coalesce(auth.uid(), old.updated_by);
-    new.version := old.version + 1;
-  end if;
-  new.updated_at := now();
-  return new;
-end;
-$$;
-
-create trigger departments_prepare
-before insert or update on public.departments
-for each row execute function private.prepare_department_row();
-
-create trigger departments_audit
-after insert or update or delete on public.departments
-for each row execute function private.write_audit_event();
-
-alter table public.departments enable row level security;
-
-create policy departments_select on public.departments
-for select to authenticated
-using (
-  hospital_id = (select private.current_hospital_id())
-  and (select private.has_permission('hr:read'))
-  and deleted_at is null
-);
-
-create policy departments_insert on public.departments
-for insert to authenticated
-with check (
-  hospital_id = (select private.current_hospital_id())
-  and (select private.has_permission('hr:create'))
-);
-
-create policy departments_update on public.departments
-for update to authenticated
-using (
-  hospital_id = (select private.current_hospital_id())
-  and (select private.has_permission('hr:update'))
-  and deleted_at is null
-)
-with check (
-  hospital_id = (select private.current_hospital_id())
-  and (select private.has_permission('hr:update'))
-  and deleted_at is null
-);
-
-revoke all on public.departments from authenticated, anon;
-grant select on public.departments to authenticated;
-grant insert (
-  hospital_id, name, description, is_active
-) on public.departments to authenticated;
-grant update (
-  name, description, is_active
-) on public.departments to authenticated;
 
 -- Shifts: staff work shifts.
 
