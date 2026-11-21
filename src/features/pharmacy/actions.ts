@@ -393,3 +393,65 @@ export async function createStockAdjustmentAction(
   revalidatePath("/inventory/adjustments");
   redirect("/inventory/adjustments");
 }
+
+export async function fulfillPrescriptionItemAction(
+  _previous: PharmacyFormState,
+  formData: FormData,
+): Promise<PharmacyFormState> {
+  const actor = await getActor("pharmacy:create");
+  if (!actor) return { error: NOT_AUTHORIZED };
+
+  const prescriptionId = formData.get("prescriptionId") as string;
+  const prescriptionItemId = formData.get("prescriptionItemId") as string;
+  const itemId = formData.get("itemId") as string;
+  const batchId = (formData.get("batchId") as string) || null;
+  const locationId = (formData.get("locationId") as string) || null;
+  const quantity = Math.abs(Number(formData.get("quantity") || 1));
+  const notes = (formData.get("notes") as string) || null;
+
+  if (!prescriptionId || !prescriptionItemId || !itemId || !quantity) {
+    return { error: "Missing required dispensation details." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  const { data: movement, error: moveError } = await supabase
+    .from("stock_movements")
+    .insert({
+      hospital_id: actor.hospitalId,
+      item_id: itemId,
+      batch_id: batchId ?? undefined,
+      location_id: locationId ?? undefined,
+      movement_type: "out",
+      quantity: -quantity,
+      reference_type: "dispensation",
+      reference_id: prescriptionId,
+      notes: notes ?? undefined,
+      created_by: actor.userId,
+    })
+    .select("id")
+    .single();
+
+  if (moveError || !movement) {
+    return { error: "Could not record stock movement: " + (moveError?.message ?? "unknown error") };
+  }
+
+  const { error: dispError } = await supabase.from("dispensations").insert({
+    hospital_id: actor.hospitalId,
+    prescription_id: prescriptionId,
+    prescription_item_id: prescriptionItemId,
+    stock_movement_id: movement.id,
+    dispensed_by: actor.userId,
+    notes: notes,
+  });
+
+  if (dispError) {
+    return { error: "Could not record dispensation: " + dispError.message };
+  }
+
+  revalidatePath(`/pharmacy/dispense/${prescriptionId}`);
+  revalidatePath(`/prescriptions/${prescriptionId}`);
+  revalidatePath("/pharmacy");
+  revalidatePath("/pharmacy/dispensations");
+  redirect(`/pharmacy/dispense/${prescriptionId}`);
+}

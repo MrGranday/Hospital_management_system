@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -60,6 +61,7 @@ interface NavItem {
   icon: React.ElementType;
   badge?: number | string;
   module?: Module;
+  href?: string;
 }
 
 interface NavGroup {
@@ -71,43 +73,43 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "Clinical",
     items: [
-      { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, module: "dashboard" },
-      { key: "patients", label: "Patients", icon: Users, module: "patients" },
-      { key: "appointments", label: "Appointments", icon: CalendarPlus, module: "appointments" },
-      { key: "opd", label: "OPD / Outpatient", icon: Stethoscope, badge: 5, module: "opd" },
+      { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, module: "dashboard", href: "/" },
+      { key: "patients", label: "Patients", icon: Users, module: "patients", href: "/patients" },
+      { key: "appointments", label: "Appointments", icon: CalendarPlus, module: "appointments", href: "/appointments" },
+      { key: "opd", label: "OPD / Outpatient", icon: Stethoscope, badge: 5, module: "opd", href: "/visits" },
       { key: "emergency", label: "Emergency", icon: Ambulance, badge: "2", module: "emergency" },
       { key: "ipd", label: "IPD / Inpatient", icon: Bed, module: "ipd" },
-      { key: "emr", label: "EMR", icon: FileText, module: "emr" },
+      { key: "emr", label: "EMR", icon: FileText, module: "emr", href: "/emr" },
       { key: "nursing", label: "Nursing", icon: HeartPulse, module: "nursing" },
     ],
   },
   {
     label: "Revenue & Supply",
     items: [
-      { key: "billing", label: "Billing", icon: Receipt, badge: "8", module: "billing" },
-      { key: "pharmacy", label: "Pharmacy", icon: Pill, module: "pharmacy" },
-      { key: "lab", label: "Laboratory", icon: FlaskConical, badge: 4, module: "lab" },
+      { key: "billing", label: "Billing", icon: Receipt, badge: "8", module: "billing", href: "/billing" },
+      { key: "pharmacy", label: "Pharmacy", icon: Pill, module: "pharmacy", href: "/pharmacy" },
+      { key: "lab", label: "Laboratory", icon: FlaskConical, badge: 4, module: "lab", href: "/lab" },
       { key: "radiology", label: "Radiology", icon: Radio, module: "radiology" },
-      { key: "inventory", label: "Inventory", icon: Boxes, badge: "!", module: "inventory" },
+      { key: "inventory", label: "Inventory", icon: Boxes, badge: "!", module: "inventory", href: "/inventory" },
       { key: "blood-bank", label: "Blood Bank", icon: Droplet, module: "blood_bank" },
-      { key: "purchases", label: "Purchases & Returns", icon: ShoppingCart, module: "purchases" },
-      { key: "suppliers", label: "Suppliers", icon: Package, module: "suppliers" },
+      { key: "purchases", label: "Purchases & Returns", icon: ShoppingCart, module: "purchases", href: "/purchasing" },
+      { key: "suppliers", label: "Suppliers", icon: Package, module: "suppliers", href: "/purchasing/suppliers" },
     ],
   },
   {
     label: "Operations",
     items: [
-      { key: "finance", label: "Finance", icon: Wallet, module: "finance" },
-      { key: "hr", label: "Human Resources", icon: UserCog, module: "hr" },
-      { key: "reports", label: "Reports", icon: FileBarChart, module: "reports" },
+      { key: "finance", label: "Finance", icon: Wallet, module: "finance", href: "/finance" },
+      { key: "hr", label: "Human Resources", icon: UserCog, module: "hr", href: "/hr" },
+      { key: "reports", label: "Reports", icon: FileBarChart, module: "reports", href: "/reports" },
     ],
   },
   {
     label: "Administration",
     items: [
-      { key: "settings", label: "Settings", icon: Settings, module: "settings" },
-      { key: "roles", label: "Roles & Permissions", icon: Shield, module: "roles" },
-      { key: "activity-log", label: "Activity Log", icon: History, module: "activity_log" },
+      { key: "settings", label: "Settings", icon: Settings, module: "settings", href: "/settings" },
+      { key: "roles", label: "Roles & Permissions", icon: Shield, module: "roles", href: "/staff/roles" },
+      { key: "activity-log", label: "Activity Log", icon: History, module: "activity_log", href: "/audit" },
     ],
   },
 ];
@@ -234,21 +236,9 @@ function NavButton({
   onClick: () => void;
 }) {
   const Icon = item.icon;
-  const isBadgeNum = typeof item.badge === "number";
-  const isBadgeStr = typeof item.badge === "string";
 
-  return (
-    <button
-      onClick={onClick}
-      title={collapsed ? item.label : undefined}
-      className={cn(
-        "w-full group relative flex items-center gap-3 rounded-lg text-sm transition-all duration-150",
-        collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2",
-        active
-          ? "bg-brand-600 text-white shadow-blue-glow"
-          : "text-sidebar-foreground hover:text-brand-700 hover:bg-brand-50",
-      )}
-    >
+  const content = (
+    <>
       {/* Active indicator bar */}
       {active && !collapsed && (
         <motion.div
@@ -279,6 +269,32 @@ function NavButton({
       {collapsed && item.badge && (
         <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-brand-500" />
       )}
+    </>
+  );
+
+  const className = cn(
+    "w-full group relative flex items-center gap-3 rounded-lg text-sm transition-all duration-150",
+    collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2",
+    active
+      ? "bg-brand-600 text-white shadow-blue-glow"
+      : "text-sidebar-foreground hover:text-brand-700 hover:bg-brand-50",
+  );
+
+  if (item.href) {
+    return (
+      <Link href={item.href} title={collapsed ? item.label : undefined} className={className}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      onClick={onClick}
+      title={collapsed ? item.label : undefined}
+      className={className}
+    >
+      {content}
     </button>
   );
 }
@@ -332,20 +348,14 @@ function MobileSidebar({ onClose }: { onClose: () => void }) {
                 {group.items.map((item) => {
                   const Icon = item.icon;
                   const active = currentPage === item.key;
-                  return (
-                    <button
-                      key={item.key}
-                      onClick={() => {
-                        setPage(item.key);
-                        onClose();
-                      }}
-                      className={cn(
-                        "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
-                        active
-                          ? "bg-brand-600 text-white shadow-blue-glow"
-                          : "text-foreground/80 hover:bg-brand-50 hover:text-brand-700",
-                      )}
-                    >
+                  const mobileClass = cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
+                    active
+                      ? "bg-brand-600 text-white shadow-blue-glow"
+                      : "text-foreground/80 hover:bg-brand-50 hover:text-brand-700",
+                  );
+                  const mobileContent = (
+                    <>
                       <Icon className={cn("h-[18px] w-[18px]", active ? "text-white" : "text-muted-foreground")} />
                       <span className="flex-1 text-left">{item.label}</span>
                       {item.badge && (
@@ -356,6 +366,32 @@ function MobileSidebar({ onClose }: { onClose: () => void }) {
                           {item.badge}
                         </span>
                       )}
+                    </>
+                  );
+
+                  if (item.href) {
+                    return (
+                      <Link
+                        key={item.key}
+                        href={item.href}
+                        onClick={onClose}
+                        className={mobileClass}
+                      >
+                        {mobileContent}
+                      </Link>
+                    );
+                  }
+
+                  return (
+                    <button
+                      key={item.key}
+                      onClick={() => {
+                        setPage(item.key);
+                        onClose();
+                      }}
+                      className={mobileClass}
+                    >
+                      {mobileContent}
                     </button>
                   );
                 })}
@@ -674,6 +710,28 @@ function CommandPalette() {
                 </p>
                 {items.map((item) => {
                   const Icon = item.icon;
+                  const itemClass = "w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-accent transition-colors text-left";
+                  const itemContent = (
+                    <>
+                      <Icon className="h-4 w-4 text-muted-foreground" />
+                      <span className="flex-1 text-sm">{item.label}</span>
+                      <Command className="h-3 w-3 text-muted-foreground/60" />
+                    </>
+                  );
+
+                  if (item.href) {
+                    return (
+                      <Link
+                        key={item.key}
+                        href={item.href}
+                        onClick={closePalette}
+                        className={itemClass}
+                      >
+                        {itemContent}
+                      </Link>
+                    );
+                  }
+
                   return (
                     <button
                       key={item.key}
@@ -681,11 +739,9 @@ function CommandPalette() {
                         setPage(item.key);
                         closePalette();
                       }}
-                      className="w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-accent transition-colors text-left"
+                      className={itemClass}
                     >
-                      <Icon className="h-4 w-4 text-muted-foreground" />
-                      <span className="flex-1 text-sm">{item.label}</span>
-                      <Command className="h-3 w-3 text-muted-foreground/60" />
+                      {itemContent}
                     </button>
                   );
                 })}

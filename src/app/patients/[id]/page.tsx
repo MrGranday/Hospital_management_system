@@ -9,6 +9,12 @@ import { createSupabaseServerClient } from "@/server/supabase/server";
 import ArchivePatientButton from "./archive-patient-button";
 import DeleteDocumentButton from "./delete-document-button";
 import DocumentUploadForm from "./document-upload-form";
+import {
+  AddDiagnosisForm,
+  AddAllergyForm,
+  AddProblemForm,
+  CreatePrescriptionModal,
+} from "./emr-actions-forms";
 
 export const dynamic = "force-dynamic";
 
@@ -85,6 +91,49 @@ export default async function PatientDetailPage({
   const canUpdate = hasPermission(context, "patients:update");
   const canArchive = hasPermission(context, "patients:archive");
   const canMerge = hasPermission(context, "patients:merge");
+  const canEmrRead = hasPermission(context, "emr:read");
+  const canEmrCreate = hasPermission(context, "emr:create");
+
+  // Clinical records
+  const { data: allergies } = canEmrRead
+    ? await supabase
+        .from("allergies")
+        .select("id, allergen, reaction, severity, is_active, recorded_at")
+        .eq("patient_id", patient.id)
+        .eq("hospital_id", context.hospitalId)
+        .is("deleted_at", null)
+        .order("recorded_at", { ascending: false })
+    : { data: [] };
+
+  const { data: diagnoses } = canEmrRead
+    ? await supabase
+        .from("diagnoses")
+        .select("id, icd_code, description, is_primary, is_chronic, diagnosed_at")
+        .eq("patient_id", patient.id)
+        .eq("hospital_id", context.hospitalId)
+        .is("deleted_at", null)
+        .order("diagnosed_at", { ascending: false })
+    : { data: [] };
+
+  const { data: problems } = canEmrRead
+    ? await supabase
+        .from("problems")
+        .select("id, condition, icd_code, is_active, onset_date, resolved_date")
+        .eq("patient_id", patient.id)
+        .eq("hospital_id", context.hospitalId)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
+    : { data: [] };
+
+  const { data: prescriptions } = canEmrRead
+    ? await supabase
+        .from("prescriptions")
+        .select("id, status, valid_until, notes, created_at")
+        .eq("patient_id", patient.id)
+        .eq("hospital_id", context.hospitalId)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
+    : { data: [] };
 
   return (
     <div className="space-y-6">
@@ -157,6 +206,189 @@ export default async function PatientDetailPage({
           </div>
         </dl>
       </section>
+
+      {/* Allergies & Safety Banner */}
+      {canEmrRead ? (
+        <section className="rounded-lg border border-border bg-card p-6 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
+                Allergies &amp; Adverse Reactions
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Clinical safety alert: Check all documented drug and food allergies before prescribing.
+              </p>
+            </div>
+            {canEmrCreate ? <AddAllergyForm patientId={patient.id} /> : null}
+          </div>
+
+          {(!allergies || allergies.length === 0) ? (
+            <p className="text-xs text-muted-foreground py-1">No known allergies on file (NKDA).</p>
+          ) : (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {allergies.map((al) => (
+                <div
+                  key={al.id}
+                  className={`px-3 py-1.5 rounded-md border text-xs flex items-center gap-2 ${
+                    al.severity === "severe"
+                      ? "bg-rose-50 text-rose-800 border-rose-300 font-semibold"
+                      : "bg-amber-50 text-amber-800 border-amber-300"
+                  }`}
+                >
+                  <span>{al.allergen}</span>
+                  {al.reaction ? <span className="text-[11px] opacity-80">({al.reaction})</span> : null}
+                  <span className="uppercase text-[9px] px-1 py-0.2 rounded bg-black/10">{al.severity}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      ) : null}
+
+      {/* Chronic Problem List & Diagnoses Grid */}
+      {canEmrRead ? (
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Active Diagnoses */}
+          <section className="rounded-lg border border-border bg-card p-6 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="text-sm font-semibold">Diagnoses (ICD)</h2>
+                <p className="text-xs text-muted-foreground">Documented clinical conditions</p>
+              </div>
+              {canEmrCreate ? (
+                <AddDiagnosisForm patientId={patient.id} currentUserId={context.userId} />
+              ) : null}
+            </div>
+
+            {(!diagnoses || diagnoses.length === 0) ? (
+              <p className="text-xs text-muted-foreground py-2">No diagnoses recorded.</p>
+            ) : (
+              <ul className="divide-y divide-border text-sm">
+                {diagnoses.map((d) => (
+                  <li key={d.id} className="py-2.5 first:pt-0 last:pb-0 flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-medium text-foreground">{d.description}</div>
+                      <div className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
+                        <span className="font-mono text-primary font-semibold">{d.icd_code}</span>
+                        {d.is_primary ? (
+                          <span className="px-1.5 py-0.2 rounded text-[10px] bg-primary/10 text-primary font-medium">
+                            Primary
+                          </span>
+                        ) : null}
+                        {d.is_chronic ? (
+                          <span className="px-1.5 py-0.2 rounded text-[10px] bg-amber-50 text-amber-700 border border-amber-200">
+                            Chronic
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+                    <span className="text-xs text-muted-foreground font-mono">
+                      {formatDate(d.diagnosed_at)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {/* Chronic Problems */}
+          <section className="rounded-lg border border-border bg-card p-6 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="text-sm font-semibold">Problem List</h2>
+                <p className="text-xs text-muted-foreground">Ongoing long-term medical conditions</p>
+              </div>
+              {canEmrCreate ? <AddProblemForm patientId={patient.id} /> : null}
+            </div>
+
+            {(!problems || problems.length === 0) ? (
+              <p className="text-xs text-muted-foreground py-2">No problems listed.</p>
+            ) : (
+              <ul className="divide-y divide-border text-sm">
+                {problems.map((pr) => (
+                  <li key={pr.id} className="py-2.5 first:pt-0 last:pb-0 flex items-center justify-between gap-2">
+                    <div>
+                      <span className="font-medium text-foreground">{pr.condition}</span>
+                      {pr.icd_code ? (
+                        <span className="ml-2 font-mono text-xs text-muted-foreground">{pr.icd_code}</span>
+                      ) : null}
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {pr.is_active ? (
+                        <span className="text-emerald-700 font-medium">Active</span>
+                      ) : (
+                        <span className="text-muted-foreground">Resolved</span>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
+      ) : null}
+
+      {/* Prescriptions History */}
+      {canEmrRead ? (
+        <section className="rounded-lg border border-border bg-card p-6 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-semibold">Prescriptions &amp; Medications</h2>
+              <p className="text-xs text-muted-foreground">Prescribed drug orders and fulfillment status</p>
+            </div>
+            {canEmrCreate ? (
+              <CreatePrescriptionModal patientId={patient.id} currentUserId={context.userId} />
+            ) : null}
+          </div>
+
+          {(!prescriptions || prescriptions.length === 0) ? (
+            <p className="text-xs text-muted-foreground py-2">No prescriptions recorded for this patient.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
+                  <tr>
+                    <th scope="col" className="px-4 py-2 font-medium">Prescription ID</th>
+                    <th scope="col" className="px-4 py-2 font-medium">Date Ordered</th>
+                    <th scope="col" className="px-4 py-2 font-medium">Status</th>
+                    <th scope="col" className="px-4 py-2 font-medium">Valid Until</th>
+                    <th scope="col" className="px-4 py-2 font-medium">Notes</th>
+                    <th scope="col" className="px-4 py-2 font-medium text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {prescriptions.map((rx) => (
+                    <tr key={rx.id} className="border-t border-border">
+                      <td className="px-4 py-3 font-mono text-xs">
+                        <Link href={`/prescriptions/${rx.id}`} className="hover:underline text-primary font-medium">
+                          {rx.id.slice(0, 8)}...
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">{formatDate(rx.created_at)}</td>
+                      <td className="px-4 py-3">
+                        <span className="px-2 py-0.5 rounded text-xs bg-muted text-foreground capitalize">
+                          {rx.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">{formatDate(rx.valid_until)}</td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">{rx.notes || "—"}</td>
+                      <td className="px-4 py-3 text-right">
+                        <Link
+                          href={`/prescriptions/${rx.id}`}
+                          className="inline-flex h-7 items-center justify-center rounded border border-input bg-background px-2.5 text-xs font-medium hover:bg-accent"
+                        >
+                          View Rx
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      ) : null}
 
       {mergedRecords && mergedRecords.length > 0 ? (
         <section className="rounded-lg border border-border bg-card p-6">

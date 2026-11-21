@@ -52,7 +52,17 @@ const fmtCompact = (n: number) =>
   n >= 1000 ? `${(n / 1000).toFixed(1)}k` : n.toLocaleString();
 const fmtUSD = (n: number) => `$${Math.round(n).toLocaleString()}`;
 
-export default function Dashboard() {
+export type RealDashboardKpis = {
+  totalPatients: number;
+  appointmentsToday: number;
+  activeVisits: number;
+  pendingLabOrders: number;
+  totalCollectedMinor: number;
+  outstandingMinor: number;
+  currency: string;
+};
+
+export default function Dashboard({ kpis }: { kpis?: RealDashboardKpis }) {
   const { setPage, user } = useAppStore();
   const dateLine = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -88,48 +98,47 @@ export default function Dashboard() {
       {/* Top KPI row with sparklines */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <KpiCard
-          label="Monthly Revenue"
-          value={DASHBOARD_STATS.monthlyRevenue}
-          format={(v) => fmtUSD(v)}
+          label="Total Collected"
+          value={kpis ? Math.round(kpis.totalCollectedMinor / 100) : DASHBOARD_STATS.monthlyRevenue}
+          format={(v) => fmt(v, kpis?.currency ?? "AFN")}
           icon={TrendingUp}
           accent="brand"
           delta="+8.2%"
           deltaType="up"
-          sub="vs last month"
+          sub="total revenue"
           sparkline={KPI_SPARKLINES.revenue}
           delay={0}
         />
         <KpiCard
-          label="Monthly Expense"
-          value={DASHBOARD_STATS.monthlyExpense}
-          format={(v) => fmtUSD(v)}
+          label="Outstanding Bills"
+          value={kpis ? Math.round(kpis.outstandingMinor / 100) : DASHBOARD_STATS.monthlyExpense}
+          format={(v) => fmt(v, kpis?.currency ?? "AFN")}
           icon={TrendingDown}
           accent="rose"
-          delta="+5.1%"
-          deltaType="up"
-          sub="vs last month"
+          delta="receivables"
+          deltaType="down"
+          sub="unpaid balance"
           sparkline={KPI_SPARKLINES.expense}
           delay={0.06}
         />
         <KpiCard
-          label="Net Income"
-          value={DASHBOARD_STATS.netIncome}
-          format={(v) => fmtUSD(v)}
+          label="Active Consultations"
+          value={kpis ? kpis.activeVisits : DASHBOARD_STATS.netIncome}
           icon={Wallet}
           accent="emerald"
-          delta={`${DASHBOARD_STATS.profitMargin}% margin`}
+          delta="OPD queue"
           deltaType="up"
           sparkline={KPI_SPARKLINES.revenue}
           delay={0.12}
         />
         <KpiCard
           label="Total Patients"
-          value={DASHBOARD_STATS.totalPatients}
+          value={kpis ? kpis.totalPatients : DASHBOARD_STATS.totalPatients}
           icon={Users}
           accent="violet"
-          delta={`+${DASHBOARD_STATS.newThisMonth} new`}
+          delta="registered charts"
           deltaType="up"
-          sub="this month"
+          sub="all time"
           sparkline={KPI_SPARKLINES.patients}
           delay={0.18}
         />
@@ -138,28 +147,27 @@ export default function Dashboard() {
       {/* Operational KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
-          label="Visits Today"
-          value={DASHBOARD_STATS.visitsToday}
+          label="Visits / OPD"
+          value={kpis ? kpis.activeVisits : DASHBOARD_STATS.visitsToday}
           icon={Activity}
           accent="brand"
-          sub={`${DASHBOARD_STATS.waitingNow} in queue`}
+          sub="in progress"
           sparkline={KPI_SPARKLINES.visits}
           delay={0.05}
         />
         <KpiCard
-          label="Collected Today"
-          value={DASHBOARD_STATS.collectedToday}
-          format={(v) => fmtUSD(v)}
+          label="Appointments Today"
+          value={kpis ? kpis.appointmentsToday : DASHBOARD_STATS.collectedToday}
           icon={Receipt}
           accent="emerald"
-          delta="+12%"
+          delta="scheduled"
           deltaType="up"
           sparkline={KPI_SPARKLINES.collection}
           delay={0.11}
         />
         <KpiCard
-          label="Unpaid Bills"
-          value={DASHBOARD_STATS.unpaidBillsToday}
+          label="Pending Lab Orders"
+          value={kpis ? kpis.pendingLabOrders : DASHBOARD_STATS.unpaidBillsToday}
           icon={AlertTriangle}
           accent="amber"
           sparkline={KPI_SPARKLINES.lowStock}

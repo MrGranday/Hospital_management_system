@@ -6,6 +6,8 @@ import { hasPermission } from "@/server/auth/require-permission";
 import { getAuthContext } from "@/server/auth/session";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 
+import { AddClinicalNoteForm } from "./visit-notes-form";
+
 export const dynamic = "force-dynamic";
 
 function formatTimestamp(value: string): string {
@@ -64,7 +66,17 @@ export default async function VisitDetailPage({
     .eq("hospital_id", context.hospitalId)
     .maybeSingle();
 
+  // Clinical notes
+  const { data: clinicalNotes } = await supabase
+    .from("clinical_notes")
+    .select("id, note_type, title, content, is_confidential, created_at, provider_id")
+    .eq("visit_id", visit.id)
+    .eq("hospital_id", context.hospitalId)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false });
+
   const canUpdate = hasPermission(context, "visits:update");
+  const canEmrCreate = hasPermission(context, "emr:create");
 
   return (
     <div className="space-y-6">
@@ -150,6 +162,45 @@ export default async function VisitDetailPage({
             <dd className="mt-0.5 whitespace-pre-line">{visit.notes || "None"}</dd>
           </div>
         </dl>
+      </section>
+
+      {/* Clinical Notes Section */}
+      <section className="rounded-lg border border-border bg-card p-6 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-sm font-semibold">Clinical Notes &amp; Consultations</h2>
+            <p className="text-xs text-muted-foreground">Doctor evaluation, progress notes, and clinical documentation for this visit.</p>
+          </div>
+          {canEmrCreate ? (
+            <AddClinicalNoteForm visitId={visit.id} currentUserId={context.userId} />
+          ) : null}
+        </div>
+
+        {(!clinicalNotes || clinicalNotes.length === 0) ? (
+          <p className="text-sm text-muted-foreground py-2">No clinical notes recorded for this visit yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {clinicalNotes.map((note) => (
+              <div key={note.id} className="rounded-md border border-border p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-semibold uppercase px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                      {note.note_type}
+                    </span>
+                    <h3 className="text-sm font-semibold text-foreground">{note.title}</h3>
+                    {note.is_confidential ? (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200">
+                        Confidential
+                      </span>
+                    ) : null}
+                  </div>
+                  <span className="text-xs text-muted-foreground">{formatTimestamp(note.created_at)}</span>
+                </div>
+                <p className="text-xs text-foreground whitespace-pre-line leading-relaxed">{note.content}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <p className="text-xs text-muted-foreground">

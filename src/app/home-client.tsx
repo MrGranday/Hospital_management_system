@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 
 import { AppShell } from "@/components/shared/AppShell";
-import Dashboard from "@/features/dashboard/components/Dashboard";
+import Dashboard, { type RealDashboardKpis } from "@/features/dashboard/components/Dashboard";
 import Patients from "@/features/patients/components/Patients";
 import OPD from "@/features/opd/components/OPD";
 import Billing from "@/features/billing/components/Billing";
@@ -51,7 +51,13 @@ export type HomeSession = {
   role: string;
 };
 
-export default function HomeClient({ session }: { session: HomeSession }) {
+export default function HomeClient({
+  session,
+  kpis,
+}: {
+  session: HomeSession;
+  kpis?: RealDashboardKpis;
+}) {
   const setSessionUser = useAppStore((state) => state.setSessionUser);
   const currentPage = useAppStore((state) => state.currentPage);
 
@@ -66,15 +72,15 @@ export default function HomeClient({ session }: { session: HomeSession }) {
 
   return (
     <AppShell>
-      <PageRouter page={currentPage} />
+      <PageRouter page={currentPage} kpis={kpis} />
     </AppShell>
   );
 }
 
-function PageRouter({ page }: { page: PageKey }) {
+function PageRouter({ page, kpis }: { page: PageKey; kpis?: RealDashboardKpis }) {
   switch (page) {
     case "dashboard":
-      return <Dashboard />;
+      return <Dashboard kpis={kpis} />;
     case "patients":
       return <Patients />;
     case "opd":
