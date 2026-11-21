@@ -257,6 +257,142 @@ referencedRelation: "visits"
 referencedColumns: ["id"]
     }
                   ]
+                },"departments": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"description": string | null,"hospital_id": string,"id": string,"is_active": boolean,"name": string,"updated_at": string,"updated_by": string | null,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"description"?: string | null,"hospital_id": string,"id"?: string,"is_active"?: boolean,"name": string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"description"?: string | null,"hospital_id"?: string,"id"?: string,"is_active"?: boolean,"name"?: string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "departments_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    }
+                  ]
+                },"staff": {
+                  Row: {
+                    "currency": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"department_id": string | null,"employment_type": string,"employee_id": string,"hire_date": string,"hospital_id": string,"id": string,"is_active": boolean,"job_title": string,"salary_annual_minor": number | null,"termination_date": string | null,"updated_at": string,"updated_by": string | null,"user_id": string,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "currency"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"department_id"?: string | null,"employment_type": string,"employee_id": string,"hire_date": string,"hospital_id": string,"id"?: string,"is_active"?: boolean,"job_title": string,"salary_annual_minor"?: number,"termination_date"?: string | null,"updated_at"?: string,"updated_by"?: string | null,"user_id": string,"version"?: number
+                  }
+                  Update: {
+                    "currency"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"department_id"?: string | null,"employment_type"?: string,"employee_id"?: string,"hire_date"?: string,"hospital_id"?: string,"id"?: string,"is_active"?: boolean,"job_title"?: string,"salary_annual_minor"?: number,"termination_date"?: string | null,"updated_at"?: string,"updated_by"?: string | null,"user_id"?: string,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "staff_department_id_fkey"
+      columns: ["department_id"]
+isOneToOne: false
+referencedRelation: "departments"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "staff_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "staff_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+referencedRelation: "profiles"
+referencedColumns: ["user_id"]
+    }
+                  ]
+                },"shifts": {
+                  Row: {
+                    "break_minutes": number,"created_at": string,"created_by": string | null,"deleted_at": string | null,"end_time": string,"hospital_id": string,"id": string,"notes": string | null,"shift_date": string,"staff_id": string,"start_time": string,"status": string,"updated_at": string,"updated_by": string | null,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "break_minutes"?: number,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"end_time": string,"hospital_id": string,"id"?: string,"notes"?: string | null,"shift_date": string,"staff_id": string,"start_time": string,"status": string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Update: {
+                    "break_minutes"?: number,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"end_time"?: string,"hospital_id"?: string,"id"?: string,"notes"?: string | null,"shift_date"?: string,"staff_id"?: string,"start_time"?: string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "shifts_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "shifts_staff_id_fkey"
+      columns: ["staff_id"]
+isOneToOne: false
+referencedRelation: "staff"
+referencedColumns: ["id"]
+    }
+                  ]
+                },"attendance": {
+                  Row: {
+                    "attendance_date": string,"clock_in": string | null,"clock_out": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"hospital_id": string,"id": string,"notes": string | null,"shift_id": string | null,"staff_id": string,"status": string,"updated_at": string,"updated_by": string | null,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "attendance_date": string,"clock_in"?: string,"clock_out"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"hospital_id": string,"id"?: string,"notes"?: string | null,"shift_id"?: string | null,"staff_id": string,"status": string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Update: {
+                    "attendance_date"?: string,"clock_in"?: string,"clock_out"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"hospital_id"?: string,"id"?: string,"notes"?: string | null,"shift_id"?: string | null,"staff_id"?: string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "attendance_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "attendance_shift_id_fkey"
+      columns: ["shift_id"]
+isOneToOne: false
+referencedRelation: "shifts"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "attendance_staff_id_fkey"
+      columns: ["staff_id"]
+isOneToOne: false
+referencedRelation: "staff"
+referencedColumns: ["id"]
+    }
+                  ]
+                },"leave_requests": {
+                  Row: {
+                    "approved_at": string | null,"approved_by": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"days": number,"end_date": string,"hospital_id": string,"id": string,"leave_type": string,"reason": string,"rejection_reason": string | null,"start_date": string,"status": string,"staff_id": string,"updated_at": string,"updated_by": string | null,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "approved_at"?: string,"approved_by"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"days": number,"end_date": string,"hospital_id": string,"id"?: string,"leave_type": string,"reason": string,"rejection_reason"?: string | null,"start_date": string,"status": string,"staff_id": string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Update: {
+                    "approved_at"?: string,"approved_by"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"days"?: number,"end_date"?: string,"hospital_id"?: string,"id"?: string,"leave_type"?: string,"reason"?: string,"rejection_reason"?: string | null,"start_date"?: string,"status"?: string,"staff_id"?: string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "leave_requests_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "leave_requests_staff_id_fkey"
+      columns: ["staff_id"]
+isOneToOne: false
+referencedRelation: "staff"
+referencedColumns: ["id"]
+    }
+                  ]
                 },"permissions": {
                   Row: {
                     "action": string,"created_at": string,"description": string | null,"id": string,"key": string,"module": string
