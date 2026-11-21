@@ -161,6 +161,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"appointments": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"ends_at": string,"hospital_id": string,"id": string,"notes": string | null,"patient_id": string,"provider_id": string,"reason": string,"starts_at": string,"status": string,"type": string,"updated_at": string,"updated_by": string | null,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"ends_at": string,"hospital_id": string,"id"?: string,"notes"?: string | null,"patient_id": string,"provider_id": string,"reason": string,"starts_at": string,"status": string,"type": string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"ends_at"?: string,"hospital_id"?: string,"id"?: string,"notes"?: string | null,"patient_id"?: string,"provider_id"?: string,"reason"?: string,"starts_at"?: string,"status"?: string,"type"?: string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "appointments_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "appointments_patient_id_fkey"
+      columns: ["patient_id"]
+isOneToOne: false
+referencedRelation: "patients"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "appointments_provider_id_fkey"
+      columns: ["provider_id"]
+isOneToOne: false
+referencedRelation: "profiles"
+referencedColumns: ["user_id"]
+    }
+                  ]
                 },"permissions": {
                   Row: {
                     "action": string,"created_at": string,"description": string | null,"id": string,"key": string,"module": string
@@ -264,7 +296,12 @@ isOneToOne: false
             "archive_patient":
 { Args: { "p_patient_id": string }; Returns: boolean
                            },
-"custom_access_token_hook":
+            "create_appointment":
+{ Args: { "p_ends_at": string,"p_notes"?: string,"p_patient_id": string,"p_provider_id": string,"p_reason": string,"p_starts_at": string,"p_type": string }; Returns: {
+              "created_at": string,"created_by": string | null,"deleted_at": string | null,"ends_at": string,"hospital_id": string,"id": string,"notes": string | null,"patient_id": string,"provider_id": string,"reason": string,"starts_at": string,"status": string,"type": string,"updated_at": string,"updated_by": string | null,"version": number
+            }
+                           },
+            "custom_access_token_hook":
 { Args: { "event": Json }; Returns: Json
                            },
 "delete_patient_document":
@@ -275,7 +312,12 @@ isOneToOne: false
               "action": string,"actor_id": string,"actor_role": string,"after": Json,"before": Json,"id": number,"occurred_at": string,"reason": string,"record_id": string,"table_name": string,"total_count": number
             }[]
                            },
-"list_patients":
+            "list_appointments":
+{ Args: { "p_limit"?: number,"p_offset"?: number,"p_provider_id"?: string,"p_query"?: string,"p_status"?: string }; Returns: {
+              "created_at": string,"ends_at": string,"id": string,"patient_id": string,"patient_mrn": string,"patient_name": string,"provider_id": string,"provider_name": string,"reason": string,"starts_at": string,"status": string,"total_count": number,"type": string
+            }[]
+                           },
+            "list_patients":
 { Args: { "p_limit"?: number,"p_offset"?: number,"p_query"?: string }; Returns: {
               "created_at": string,"date_of_birth": string,"full_name": string,"id": string,"mrn": string,"phone": string,"sex": string,"total_count": number
             }[]
