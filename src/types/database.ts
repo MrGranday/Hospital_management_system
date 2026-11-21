@@ -161,6 +161,168 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"suppliers": {
+                  Row: {
+                    "address": string | null,"contact_email": string | null,"contact_name": string | null,"contact_phone": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"hospital_id": string,"id": string,"is_active": boolean,"name": string,"payment_terms": string,"supplier_code": string,"tax_id": string | null,"updated_at": string,"updated_by": string | null,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "address"?: string | null,"contact_email"?: string | null,"contact_name"?: string | null,"contact_phone"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"hospital_id": string,"id"?: string,"is_active"?: boolean,"name": string,"payment_terms"?: string,"supplier_code": string,"tax_id"?: string | null,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Update: {
+                    "address"?: string | null,"contact_email"?: string | null,"contact_name"?: string | null,"contact_phone"?: string | null,"deleted_at"?: string | null,"hospital_id"?: string,"id"?: string,"is_active"?: boolean,"name"?: string,"payment_terms"?: string,"supplier_code"?: string,"tax_id"?: string | null,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "suppliers_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    }
+                  ]
+                },"purchase_orders": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"currency": string,"deleted_at": string | null,"hospital_id": string,"id": string,"notes": string | null,"ordered_at": string,"po_no": string,"received_at": string | null,"status": string,"subtotal_minor": number,"supplier_id": string,"tax_minor": number,"total_minor": number,"updated_at": string,"updated_by": string | null,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"hospital_id": string,"id"?: string,"notes"?: string | null,"ordered_at"?: string,"po_no": string,"received_at"?: string | null,"status": string,"subtotal_minor": number,"supplier_id": string,"tax_minor": number,"total_minor": number,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"hospital_id"?: string,"id"?: string,"notes"?: string | null,"ordered_at"?: string,"po_no"?: string,"received_at"?: string | null,"status"?: string,"subtotal_minor"?: number,"supplier_id"?: string,"tax_minor": number,"total_minor": number,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "purchase_orders_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "purchase_orders_supplier_id_fkey"
+      columns: ["supplier_id"]
+isOneToOne: false
+referencedRelation: "suppliers"
+referencedColumns: ["id"]
+    }
+                  ]
+                },"po_lines": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"description": string,"hospital_id": string,"id": string,"item_id": string | null,"line_total_minor": number,"purchase_order_id": string,"quantity": number,"received_quantity": number,"unit_price_minor": number,"updated_at": string,"updated_by": string | null,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"description": string,"hospital_id": string,"id"?: string,"item_id"?: string | null,"line_total_minor": number,"purchase_order_id": string,"quantity": number,"received_quantity"?: number,"unit_price_minor": number,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"description"?: string,"hospital_id"?: string,"id"?: string,"item_id"?: string | null,"line_total_minor"?: number,"purchase_order_id"?: string,"quantity"?: number,"received_quantity"?: number,"unit_price_minor"?: number,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "po_lines_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "po_lines_item_id_fkey"
+      columns: ["item_id"]
+isOneToOne: false
+referencedRelation: "items"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "po_lines_purchase_order_id_fkey"
+      columns: ["purchase_order_id"]
+isOneToOne: false
+referencedRelation: "purchase_orders"
+referencedColumns: ["id"]
+    }
+                  ]
+                },"goods_receipts": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"hospital_id": string,"id": string,"notes": string | null,"purchase_order_id": string,"receipt_no": string,"received_at": string,"received_by": string,"updated_at": string,"updated_by": string | null,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"hospital_id": string,"id"?: string,"notes"?: string | null,"purchase_order_id": string,"receipt_no": string,"received_at"?: string,"received_by": string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"hospital_id"?: string,"id"?: string,"notes"?: string | null,"purchase_order_id"?: string,"receipt_no"?: string,"received_at"?: string,"received_by": string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "goods_receipts_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "goods_receipts_purchase_order_id_fkey"
+      columns: ["purchase_order_id"]
+isOneToOne: false
+referencedRelation: "purchase_orders"
+referencedColumns: ["id"]
+    }
+                  ]
+                },"purchase_returns": {
+                  Row: {
+                    "amount_minor": number,"created_at": string,"created_by": string | null,"currency": string,"deleted_at": string | null,"goods_receipt_id": string | null,"hospital_id": string,"id": string,"purchase_order_id": string | null,"reason": string,"return_no": string,"status": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_minor": number,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"goods_receipt_id"?: string | null,"hospital_id": string,"id"?: string,"purchase_order_id"?: string | null,"reason": string,"return_no": string,"status": string,"updated_at"?: string,"version"?: number
+                  }
+                  Update: {
+                    "amount_minor"?: number,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"hospital_id"?: string,"id"?: string,"purchase_order_id"?: string | null,"reason": string,"return_no": string,"status": string,"updated_at"?: string,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "purchase_returns_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "purchase_returns_goods_receipt_id_fkey"
+      columns: ["goods_receipt_id"]
+isOneToOne: false
+referencedRelation: "goods_receipts"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "purchase_returns_purchase_order_id_fkey"
+      columns: ["purchase_order_id"]
+isOneToOne: false
+referencedRelation: "purchase_orders"
+referencedColumns: ["id"]
+    }
+                  ]
+                },"supplier_ledger": {
+                  Row: {
+                    "amount_minor": number,"created_at": string,"created_by": string,"currency": string,"description": string | null,"hospital_id": string,"id": string,"reference_id": string,"reference_type": string,"supplier_id": string,"transaction_date": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_minor": number,"created_at"?: string,"created_by": string,"currency"?: string,"description"?: string | null,"hospital_id": string,"id"?: string,"reference_id": string,"reference_type": string,"supplier_id": string,"transaction_date"?: string
+                  }
+                  Update: {
+                    "amount_minor"?: number,"created_at"?: string,"created_by"?: string,"currency"?: string,"description"?: string | null,"hospital_id"?: string,"id"?: string,"reference_id"?: string,"reference_type"?: string,"supplier_id"?: string,"transaction_date"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "supplier_ledger_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "supplier_ledger_supplier_id_fkey"
+      columns: ["supplier_id"]
+isOneToOne: false
+referencedRelation: "suppliers"
+referencedColumns: ["id"]
+    }
+                  ]
                 },"permissions": {
                   Row: {
                     "action": string,"created_at": string,"description": string | null,"id": string,"key": string,"module": string
