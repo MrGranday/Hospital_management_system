@@ -495,6 +495,180 @@ referencedRelation: "hospitals"
 referencedColumns: ["id"]
     }
                   ]
+                },"dispensations": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"dispensed_at": string,"dispensed_by": string,"hospital_id": string,"id": string,"notes": string | null,"prescription_id": string,"prescription_item_id": string,"stock_movement_id": string,"updated_at": string,"updated_by": string | null,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"dispensed_at"?: string,"dispensed_by": string,"hospital_id": string,"id"?: string,"notes"?: string | null,"prescription_id": string,"prescription_item_id": string,"stock_movement_id": string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"dispensed_at"?: string,"dispensed_by"?: string,"hospital_id"?: string,"id"?: string,"notes"?: string | null,"prescription_id"?: string,"prescription_item_id"?: string,"stock_movement_id"?: string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "dispensations_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "dispensations_dispensed_by_fkey"
+      columns: ["dispensed_by"]
+isOneToOne: false
+referencedRelation: "profiles"
+referencedColumns: ["user_id"]
+    },{
+      foreignKeyName: "dispensations_prescription_id_fkey"
+      columns: ["prescription_id"]
+isOneToOne: false
+referencedRelation: "prescriptions"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "dispensations_prescription_item_id_fkey"
+      columns: ["prescription_item_id"]
+isOneToOne: false
+referencedRelation: "prescription_items"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "dispensations_stock_movement_id_fkey"
+      columns: ["stock_movement_id"]
+isOneToOne: false
+referencedRelation: "stock_movements"
+referencedColumns: ["id"]
+    }
+                  ]
+                },"item_batches": {
+                  Row: {
+                    "batch_no": string,"cost_price_minor": number,"created_at": string,"created_by": string | null,"currency": string,"deleted_at": string | null,"expiry_date": string,"hospital_id": string,"id": string,"item_id": string,"received_at": string,"received_by": string | null,"sale_price_minor": number,"updated_at": string,"updated_by": string | null,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "batch_no": string,"cost_price_minor": number,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"expiry_date": string,"hospital_id": string,"id"?: string,"item_id": string,"received_at"?: string,"received_by"?: string | null,"sale_price_minor": number,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Update: {
+                    "batch_no"?: string,"cost_price_minor"?: number,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"expiry_date"?: string,"hospital_id"?: string,"id"?: string,"item_id"?: string,"received_at"?: string,"received_by"?: string | null,"sale_price_minor"?: number,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "item_batches_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "item_batches_item_id_fkey"
+      columns: ["item_id"]
+isOneToOne: false
+referencedRelation: "items"
+referencedColumns: ["id"]
+    }
+                  ]
+                },"items": {
+                  Row: {
+                    "category": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"description": string | null,"hospital_id": string,"id": string,"is_active": boolean,"is_controlled": boolean,"name": string,"requires_prescription": boolean,"sku": string,"unit": string,"updated_at": string,"updated_by": string | null,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "category"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"description"?: string | null,"hospital_id": string,"id"?: string,"is_active"?: boolean,"is_controlled"?: boolean,"name": string,"requires_prescription"?: boolean,"sku": string,"unit": string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Update: {
+                    "category"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"description"?: string | null,"hospital_id"?: string,"id"?: string,"is_active"?: boolean,"is_controlled"?: boolean,"name"?: string,"requires_prescription"?: boolean,"sku"?: string,"unit"?: string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "items_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    }
+                  ]
+                },"stock_adjustments": {
+                  Row: {
+                    "approved_at": string | null,"approved_by": string | null,"created_at": string,"created_by": string,"hospital_id": string,"id": string,"movement_id": string,"reason": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "approved_at"?: string | null,"approved_by"?: string | null,"created_at"?: string,"created_by": string,"hospital_id": string,"id"?: string,"movement_id": string,"reason": string
+                  }
+                  Update: {
+                    "approved_at"?: string | null,"approved_by"?: string | null,"created_at"?: string,"created_by"?: string,"hospital_id"?: string,"id"?: string,"movement_id"?: string,"reason"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "stock_adjustments_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "stock_adjustments_movement_id_fkey"
+      columns: ["movement_id"]
+isOneToOne: false
+referencedRelation: "stock_movements"
+referencedColumns: ["id"]
+    }
+                  ]
+                },"stock_locations": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"hospital_id": string,"id": string,"is_active": boolean,"name": string,"type": string,"updated_at": string,"updated_by": string | null,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"hospital_id": string,"id"?: string,"is_active"?: boolean,"name": string,"type": string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"hospital_id"?: string,"id"?: string,"is_active"?: boolean,"name"?: string,"type"?: string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "stock_locations_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    }
+                  ]
+                },"stock_movements": {
+                  Row: {
+                    "batch_id": string | null,"created_at": string,"created_by": string,"hospital_id": string,"id": string,"item_id": string,"location_id": string | null,"movement_type": string,"notes": string | null,"quantity": number,"reference_id": string | null,"reference_type": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "batch_id"?: string | null,"created_at"?: string,"created_by": string,"hospital_id": string,"id"?: string,"item_id": string,"location_id"?: string | null,"movement_type": string,"notes"?: string | null,"quantity": number,"reference_id"?: string | null,"reference_type"?: string | null
+                  }
+                  Update: {
+                    "batch_id"?: string | null,"created_at"?: string,"created_by"?: string,"hospital_id"?: string,"id"?: string,"item_id"?: string,"location_id"?: string | null,"movement_type"?: string,"notes"?: string | null,"quantity"?: number,"reference_id"?: string | null,"reference_type"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "stock_movements_batch_id_fkey"
+      columns: ["batch_id"]
+isOneToOne: false
+referencedRelation: "item_batches"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "stock_movements_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "stock_movements_item_id_fkey"
+      columns: ["item_id"]
+isOneToOne: false
+referencedRelation: "items"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "stock_movements_location_id_fkey"
+      columns: ["location_id"]
+isOneToOne: false
+referencedRelation: "stock_locations"
+referencedColumns: ["id"]
+    }
+                  ]
                 },"permissions": {
                   Row: {
                     "action": string,"created_at": string,"description": string | null,"id": string,"key": string,"module": string
