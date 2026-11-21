@@ -2,10 +2,8 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { parseSessionClaims } from "@/lib/auth/claims";
-import { isMfaSatisfied } from "@/lib/auth/mfa";
+import { resolveRoute } from "@/lib/auth/routing";
 import { getPublicEnv } from "@/lib/env";
-
-const PUBLIC_PATHS = new Set(["/login"]);
 
 function copyCookies(from: NextResponse, to: NextResponse): NextResponse {
   for (const cookie of from.cookies.getAll()) to.cookies.set(cookie);
@@ -46,40 +44,10 @@ export default async function proxy(request: NextRequest): Promise<NextResponse>
   const claims = parseSessionClaims(claimsData?.claims);
 
   const { pathname } = request.nextUrl;
+  const decision = resolveRoute(claims, pathname);
 
-  if (!claims) {
-    return PUBLIC_PATHS.has(pathname) ? response : redirectTo(request, response, "/login");
-  }
-
-  const { mustChangePassword } = claims;
-
-  if (mustChangePassword && pathname !== "/change-password") {
-    return redirectTo(request, response, "/change-password");
-  }
-
-  const mfaSatisfied = isMfaSatisfied(claims.role, claims.aal);
-
-  if (!mfaSatisfied && pathname !== "/mfa") {
-    return redirectTo(request, response, "/mfa");
-  }
-
-  const isSuperAdmin = claims.role === "super_admin";
-  const isPlatformPath = pathname === "/platform" || pathname.startsWith("/platform/");
-
-  if (mfaSatisfied && pathname === "/mfa") {
-    return redirectTo(request, response, isSuperAdmin ? "/platform" : "/");
-  }
-
-  if (!mustChangePassword && isSuperAdmin && !isPlatformPath && pathname !== "/change-password") {
-    return redirectTo(request, response, "/platform");
-  }
-
-  if (!isSuperAdmin && isPlatformPath) {
-    return redirectTo(request, response, "/");
-  }
-
-  if (!mustChangePassword && (pathname === "/login" || pathname === "/change-password")) {
-    return redirectTo(request, response, isSuperAdmin ? "/platform" : "/");
+  if (decision.type === "redirect") {
+    return redirectTo(request, response, decision.target);
   }
 
   return response;
