@@ -65,7 +65,9 @@ export async function verifyMfaAction(
   const supabase = await createSupabaseServerClient();
 
   const challenge = await supabase.auth.mfa.challenge({ factorId: parsed.data.factorId });
-  if (challenge.error || !challenge.data) return { error: GENERIC_CODE_ERROR };
+  if (challenge.error || !challenge.data) {
+    return { error: challenge.error?.message ?? "Authenticator challenge failed. Try again." };
+  }
 
   const verify = await supabase.auth.mfa.verify({
     factorId: parsed.data.factorId,
