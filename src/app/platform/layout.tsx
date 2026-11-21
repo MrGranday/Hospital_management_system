@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { isMfaSatisfied } from "@/lib/auth/mfa";
 import { signOutAction } from "@/server/auth/actions";
+import { getAuthContext } from "@/server/auth/session";
 import { getSuperAdminContext } from "@/server/platform/guard";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +14,13 @@ export default async function PlatformLayout({
   children: React.ReactNode;
 }) {
   const context = await getSuperAdminContext();
-  if (!context) redirect("/login");
+  if (!context) {
+    const auth = await getAuthContext();
+    if (auth && !isMfaSatisfied(auth.role, auth.aal)) {
+      redirect("/mfa");
+    }
+    redirect("/login");
+  }
 
   return (
     <div className="min-h-screen bg-background">

@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { isMfaRequiredForRole, isMfaSatisfied, mfaCodeSchema, mfaVerifySchema, MFA_REQUIRED_ROLES } from "./mfa";
+import {
+  isMfaRequiredForRole,
+  isMfaSatisfied,
+  mfaCodeSchema,
+  mfaVerifySchema,
+  MFA_REQUIRED_ROLES,
+  parseQrCodeSvg,
+} from "./mfa";
 
 describe("MFA policy", () => {
   it("requires MFA for every privileged role in SECURITY.md", () => {
