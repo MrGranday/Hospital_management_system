@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -61,7 +60,6 @@ interface NavItem {
   icon: React.ElementType;
   badge?: number | string;
   module?: Module;
-  href?: string;
 }
 
 interface NavGroup {
@@ -73,43 +71,43 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "Clinical",
     items: [
-      { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, module: "dashboard", href: "/" },
-      { key: "patients", label: "Patients", icon: Users, module: "patients", href: "/patients" },
-      { key: "appointments", label: "Appointments", icon: CalendarPlus, module: "appointments", href: "/appointments" },
-      { key: "opd", label: "OPD / Outpatient", icon: Stethoscope, badge: 5, module: "opd", href: "/visits" },
+      { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, module: "dashboard" },
+      { key: "patients", label: "Patients", icon: Users, module: "patients" },
+      { key: "appointments", label: "Appointments", icon: CalendarPlus, module: "appointments" },
+      { key: "opd", label: "OPD / Outpatient", icon: Stethoscope, badge: 5, module: "opd" },
       { key: "emergency", label: "Emergency", icon: Ambulance, badge: "2", module: "emergency" },
       { key: "ipd", label: "IPD / Inpatient", icon: Bed, module: "ipd" },
-      { key: "emr", label: "EMR", icon: FileText, module: "emr", href: "/emr" },
+      { key: "emr", label: "EMR", icon: FileText, module: "emr" },
       { key: "nursing", label: "Nursing", icon: HeartPulse, module: "nursing" },
     ],
   },
   {
     label: "Revenue & Supply",
     items: [
-      { key: "billing", label: "Billing", icon: Receipt, badge: "8", module: "billing", href: "/billing" },
-      { key: "pharmacy", label: "Pharmacy", icon: Pill, module: "pharmacy", href: "/pharmacy" },
-      { key: "lab", label: "Laboratory", icon: FlaskConical, badge: 4, module: "lab", href: "/lab" },
+      { key: "billing", label: "Billing", icon: Receipt, badge: "8", module: "billing" },
+      { key: "pharmacy", label: "Pharmacy", icon: Pill, module: "pharmacy" },
+      { key: "lab", label: "Laboratory", icon: FlaskConical, badge: 4, module: "lab" },
       { key: "radiology", label: "Radiology", icon: Radio, module: "radiology" },
-      { key: "inventory", label: "Inventory", icon: Boxes, badge: "!", module: "inventory", href: "/inventory" },
+      { key: "inventory", label: "Inventory", icon: Boxes, badge: "!", module: "inventory" },
       { key: "blood-bank", label: "Blood Bank", icon: Droplet, module: "blood_bank" },
-      { key: "purchases", label: "Purchases & Returns", icon: ShoppingCart, module: "purchases", href: "/purchasing" },
-      { key: "suppliers", label: "Suppliers", icon: Package, module: "suppliers", href: "/purchasing/suppliers" },
+      { key: "purchases", label: "Purchases & Returns", icon: ShoppingCart, module: "purchases" },
+      { key: "suppliers", label: "Suppliers", icon: Package, module: "suppliers" },
     ],
   },
   {
     label: "Operations",
     items: [
-      { key: "finance", label: "Finance", icon: Wallet, module: "finance", href: "/finance" },
-      { key: "hr", label: "Human Resources", icon: UserCog, module: "hr", href: "/hr" },
-      { key: "reports", label: "Reports", icon: FileBarChart, module: "reports", href: "/reports" },
+      { key: "finance", label: "Finance", icon: Wallet, module: "finance" },
+      { key: "hr", label: "Human Resources", icon: UserCog, module: "hr" },
+      { key: "reports", label: "Reports", icon: FileBarChart, module: "reports" },
     ],
   },
   {
     label: "Administration",
     items: [
-      { key: "settings", label: "Settings", icon: Settings, module: "settings", href: "/settings" },
-      { key: "roles", label: "Roles & Permissions", icon: Shield, module: "roles", href: "/staff/roles" },
-      { key: "activity-log", label: "Activity Log", icon: History, module: "activity_log", href: "/audit" },
+      { key: "settings", label: "Settings", icon: Settings, module: "settings" },
+      { key: "roles", label: "Roles & Permissions", icon: Shield, module: "roles" },
+      { key: "activity-log", label: "Activity Log", icon: History, module: "activity_log" },
     ],
   },
 ];
@@ -280,14 +278,6 @@ function NavButton({
       : "text-sidebar-foreground hover:text-brand-700 hover:bg-brand-50",
   );
 
-  if (item.href) {
-    return (
-      <Link href={item.href} title={collapsed ? item.label : undefined} className={className}>
-        {content}
-      </Link>
-    );
-  }
-
   return (
     <button
       onClick={onClick}
@@ -368,19 +358,6 @@ function MobileSidebar({ onClose }: { onClose: () => void }) {
                       )}
                     </>
                   );
-
-                  if (item.href) {
-                    return (
-                      <Link
-                        key={item.key}
-                        href={item.href}
-                        onClick={onClose}
-                        className={mobileClass}
-                      >
-                        {mobileContent}
-                      </Link>
-                    );
-                  }
 
                   return (
                     <button
@@ -718,19 +695,6 @@ function CommandPalette() {
                       <Command className="h-3 w-3 text-muted-foreground/60" />
                     </>
                   );
-
-                  if (item.href) {
-                    return (
-                      <Link
-                        key={item.key}
-                        href={item.href}
-                        onClick={closePalette}
-                        className={itemClass}
-                      >
-                        {itemContent}
-                      </Link>
-                    );
-                  }
 
                   return (
                     <button
