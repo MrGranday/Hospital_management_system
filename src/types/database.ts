@@ -359,6 +359,142 @@ referencedRelation: "prescriptions"
 referencedColumns: ["id"]
     }
                   ]
+                },"credit_notes": {
+                  Row: {
+                    "amount_minor": number,"created_at": string,"currency": string,"hospital_id": string,"id": string,"invoice_id": string,"reason": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_minor": number,"created_at"?: string,"currency"?: string,"hospital_id": string,"id"?: string,"invoice_id": string,"reason": string
+                  }
+                  Update: {
+                    "amount_minor"?: number,"created_at"?: string,"currency"?: string,"hospital_id"?: string,"id"?: string,"invoice_id"?: string,"reason"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "credit_notes_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "credit_notes_invoice_id_fkey"
+      columns: ["invoice_id"]
+isOneToOne: false
+referencedRelation: "invoices"
+referencedColumns: ["id"]
+    }
+                  ]
+                },"invoice_lines": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"description": string,"hospital_id": string,"id": string,"invoice_id": string,"line_total_minor": number,"quantity": number,"service_id": string | null,"unit_price_minor": number,"updated_at": string,"updated_by": string | null,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"description": string,"hospital_id": string,"id"?: string,"invoice_id": string,"line_total_minor": number,"quantity": number,"service_id"?: string | null,"unit_price_minor": number,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"description"?: string,"hospital_id"?: string,"id"?: string,"invoice_id"?: string,"line_total_minor"?: number,"quantity"?: number,"service_id"?: string | null,"unit_price_minor"?: number,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "invoice_lines_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "invoice_lines_invoice_id_fkey"
+      columns: ["invoice_id"]
+isOneToOne: false
+referencedRelation: "invoices"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "invoice_lines_service_id_fkey"
+      columns: ["service_id"]
+isOneToOne: false
+referencedRelation: "services"
+referencedColumns: ["id"]
+    }
+                  ]
+                },"invoices": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"currency": string,"deleted_at": string | null,"hospital_id": string,"id": string,"invoice_no": string,"issued_at": string | null,"patient_id": string,"status": string,"subtotal_minor": number,"tax_minor": number,"total_minor": number,"updated_at": string,"updated_by": string | null,"void_reason": string | null,"voided_at": string | null,"voided_by": string | null,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"hospital_id": string,"id"?: string,"invoice_no": string,"issued_at"?: string | null,"patient_id": string,"status": string,"subtotal_minor": number,"tax_minor": number,"total_minor": number,"updated_at"?: string,"updated_by"?: string | null,"void_reason"?: string | null,"voided_at"?: string | null,"voided_by"?: string | null,"version"?: number
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"hospital_id"?: string,"id"?: string,"invoice_no"?: string,"issued_at"?: string | null,"patient_id"?: string,"status"?: string,"subtotal_minor"?: number,"tax_minor"?: number,"total_minor"?: number,"updated_at"?: string,"updated_by"?: string | null,"void_reason"?: string | null,"voided_at"?: string | null,"voided_by"?: string | null,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "invoices_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "invoices_patient_id_fkey"
+      columns: ["patient_id"]
+isOneToOne: false
+referencedRelation: "patients"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "invoices_voided_by_fkey"
+      columns: ["voided_by"]
+isOneToOne: false
+referencedRelation: "auth.users"
+referencedColumns: ["id"]
+    }
+                  ]
+                },"payments": {
+                  Row: {
+                    "amount_minor": number,"created_at": string,"created_by": string | null,"currency": string,"deleted_at": string | null,"hospital_id": string,"id": string,"invoice_id": string,"paid_at": string,"payment_method": string,"reference": string | null,"updated_at": string,"updated_by": string | null,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_minor": number,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"hospital_id": string,"id"?: string,"invoice_id": string,"paid_at"?: string,"payment_method": string,"reference"?: string | null,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Update: {
+                    "amount_minor"?: number,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"hospital_id"?: string,"id"?: string,"invoice_id"?: string,"paid_at"?: string,"payment_method"?: string,"reference"?: string | null,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "payments_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "payments_invoice_id_fkey"
+      columns: ["invoice_id"]
+isOneToOne: false
+referencedRelation: "invoices"
+referencedColumns: ["id"]
+    }
+                  ]
+                },"services": {
+                  Row: {
+                    "code": string,"created_at": string,"created_by": string | null,"currency": string,"deleted_at": string | null,"department": string | null,"description": string | null,"hospital_id": string,"id": string,"is_active": boolean,"name": string,"unit_price_minor": number,"updated_at": string,"updated_by": string | null,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "code": string,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"department"?: string | null,"description"?: string | null,"hospital_id": string,"id"?: string,"is_active"?: boolean,"name": string,"unit_price_minor": number,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Update: {
+                    "code"?: string,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"deleted_at"?: string | null,"department"?: string | null,"description"?: string | null,"hospital_id"?: string,"id"?: string,"is_active"?: boolean,"name"?: string,"unit_price_minor"?: number,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "services_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    }
+                  ]
                 },"permissions": {
                   Row: {
                     "action": string,"created_at": string,"description": string | null,"id": string,"key": string,"module": string
