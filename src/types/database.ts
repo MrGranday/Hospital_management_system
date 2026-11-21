@@ -161,6 +161,204 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"allergies": {
+                  Row: {
+                    "allergen": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"hospital_id": string,"id": string,"is_active": boolean,"patient_id": string,"recorded_at": string,"recorded_by": string,"reaction": string | null,"severity": string | null,"updated_at": string,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "allergen": string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"hospital_id": string,"id"?: string,"is_active"?: boolean,"patient_id": string,"recorded_at"?: string,"recorded_by": string,"reaction"?: string | null,"severity"?: string | null,"updated_at"?: string,"version"?: number
+                  }
+                  Update: {
+                    "allergen"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"hospital_id"?: string,"id"?: string,"is_active"?: boolean,"patient_id"?: string,"recorded_at"?: string,"recorded_by"?: string,"reaction"?: string | null,"severity"?: string | null,"updated_at"?: string,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "allergies_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "allergies_patient_id_fkey"
+      columns: ["patient_id"]
+isOneToOne: false
+referencedRelation: "patients"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "allergies_recorded_by_fkey"
+      columns: ["recorded_by"]
+isOneToOne: false
+referencedRelation: "profiles"
+referencedColumns: ["user_id"]
+    }
+                  ]
+                },"clinical_notes": {
+                  Row: {
+                    "content": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"hospital_id": string,"id": string,"is_confidential": boolean,"note_type": string,"provider_id": string,"title": string,"updated_at": string,"updated_by": string | null,"visit_id": string,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "content": string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"hospital_id": string,"id"?: string,"is_confidential"?: boolean,"note_type": string,"provider_id": string,"title": string,"updated_at"?: string,"updated_by"?: string | null,"visit_id": string,"version"?: number
+                  }
+                  Update: {
+                    "content"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"hospital_id"?: string,"id"?: string,"is_confidential"?: boolean,"note_type"?: string,"provider_id"?: string,"title"?: string,"updated_at"?: string,"updated_by"?: string | null,"visit_id"?: string,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "clinical_notes_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "clinical_notes_provider_id_fkey"
+      columns: ["provider_id"]
+isOneToOne: false
+referencedRelation: "profiles"
+referencedColumns: ["user_id"]
+    },{
+      foreignKeyName: "clinical_notes_visit_id_fkey"
+      columns: ["visit_id"]
+isOneToOne: false
+referencedRelation: "visits"
+referencedColumns: ["id"]
+    }
+                  ]
+                },"diagnoses": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"description": string,"diagnosed_at": string,"hospital_id": string,"id": string,"icd_code": string,"is_chronic": boolean,"is_primary": boolean,"patient_id": string,"provider_id": string,"updated_at": string,"updated_by": string | null,"visit_id": string | null,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"description": string,"diagnosed_at"?: string,"hospital_id": string,"id"?: string,"icd_code": string,"is_chronic"?: boolean,"is_primary"?: boolean,"patient_id": string,"provider_id": string,"updated_at"?: string,"updated_by"?: string | null,"visit_id"?: string | null,"version"?: number
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"description"?: string,"diagnosed_at"?: string,"hospital_id"?: string,"id"?: string,"icd_code"?: string,"is_chronic"?: boolean,"is_primary"?: boolean,"patient_id"?: string,"provider_id"?: string,"updated_at"?: string,"updated_by"?: string | null,"visit_id"?: string | null,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "diagnoses_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "diagnoses_patient_id_fkey"
+      columns: ["patient_id"]
+isOneToOne: false
+referencedRelation: "patients"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "diagnoses_provider_id_fkey"
+      columns: ["provider_id"]
+isOneToOne: false
+referencedRelation: "profiles"
+referencedColumns: ["user_id"]
+    },{
+      foreignKeyName: "diagnoses_visit_id_fkey"
+      columns: ["visit_id"]
+isOneToOne: false
+referencedRelation: "visits"
+referencedColumns: ["id"]
+    }
+                  ]
+                },"problems": {
+                  Row: {
+                    "condition": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"hospital_id": string,"icd_code": string | null,"id": string,"is_active": boolean,"onset_date": string | null,"patient_id": string,"recorded_by": string,"resolved_date": string | null,"updated_at": string,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "condition": string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"hospital_id": string,"icd_code"?: string | null,"id"?: string,"is_active"?: boolean,"onset_date"?: string | null,"patient_id": string,"recorded_by": string,"resolved_date"?: string | null,"updated_at"?: string,"version"?: number
+                  }
+                  Update: {
+                    "condition"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"hospital_id"?: string,"icd_code"?: string | null,"id"?: string,"is_active"?: boolean,"onset_date"?: string | null,"patient_id"?: string,"recorded_by"?: string,"resolved_date"?: string | null,"updated_at"?: string,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "problems_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "problems_patient_id_fkey"
+      columns: ["patient_id"]
+isOneToOne: false
+referencedRelation: "patients"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "problems_recorded_by_fkey"
+      columns: ["recorded_by"]
+isOneToOne: false
+referencedRelation: "profiles"
+referencedColumns: ["user_id"]
+    }
+                  ]
+                },"prescriptions": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"hospital_id": string,"id": string,"notes": string | null,"patient_id": string,"prescribed_at": string,"provider_id": string,"status": string,"updated_at": string,"updated_by": string | null,"valid_until": string | null,"visit_id": string | null,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"hospital_id": string,"id"?: string,"notes"?: string | null,"patient_id": string,"prescribed_at"?: string,"provider_id": string,"status": string,"updated_at"?: string,"updated_by"?: string | null,"valid_until"?: string | null,"visit_id"?: string | null,"version"?: number
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"hospital_id"?: string,"id"?: string,"notes"?: string | null,"patient_id"?: string,"prescribed_at"?: string,"provider_id"?: string,"status"?: string,"updated_at"?: string,"updated_by"?: string | null,"valid_until"?: string | null,"visit_id"?: string | null,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "prescriptions_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "prescriptions_patient_id_fkey"
+      columns: ["patient_id"]
+isOneToOne: false
+referencedRelation: "patients"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "prescriptions_provider_id_fkey"
+      columns: ["provider_id"]
+isOneToOne: false
+referencedRelation: "profiles"
+referencedColumns: ["user_id"]
+    },{
+      foreignKeyName: "prescriptions_visit_id_fkey"
+      columns: ["visit_id"]
+isOneToOne: false
+referencedRelation: "visits"
+referencedColumns: ["id"]
+    }
+                  ]
+                },"prescription_items": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"duration": string | null,"frequency": string,"hospital_id": string,"id": string,"instructions": string | null,"medication_name": string,"dosage": string,"prescription_id": string,"quantity": number | null,"refills": number,"updated_at": string,"updated_by": string | null,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"duration"?: string | null,"frequency": string,"hospital_id": string,"id"?: string,"instructions"?: string | null,"medication_name": string,"dosage": string,"prescription_id": string,"quantity"?: number | null,"refills"?: number,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"duration"?: string | null,"frequency"?: string,"hospital_id"?: string,"id"?: string,"instructions"?: string | null,"medication_name"?: string,"dosage"?: string,"prescription_id"?: string,"quantity"?: number | null,"refills"?: number,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "prescription_items_hospital_id_fkey"
+      columns: ["hospital_id"]
+isOneToOne: false
+referencedRelation: "hospitals"
+referencedColumns: ["id"]
+    },{
+      foreignKeyName: "prescription_items_prescription_id_fkey"
+      columns: ["prescription_id"]
+isOneToOne: false
+referencedRelation: "prescriptions"
+referencedColumns: ["id"]
+    }
+                  ]
                 },"permissions": {
                   Row: {
                     "action": string,"created_at": string,"description": string | null,"id": string,"key": string,"module": string
