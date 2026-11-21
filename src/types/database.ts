@@ -813,7 +813,10 @@ isOneToOne: false
               "action": string,"actor_role": string,"hospital_id": string,"id": number,"occurred_at": string,"record_id": string,"table_name": string
             }[]
                            },
-"log_patient_document_access":
+            "verify_lab_result":
+{ Args: { "p_result_id": string,"p_verified"?: boolean }; Returns: boolean
+                           },
+            "log_patient_document_access":
 { Args: { "p_document_id": string }; Returns: undefined
                            },
             "record_vitals":
