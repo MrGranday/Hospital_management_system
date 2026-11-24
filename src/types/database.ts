@@ -1321,6 +1321,11 @@ isOneToOne: false
               "full_name": string,"user_id": string
             }[]
                            },
+"list_opd_queue":
+{ Args: { "p_limit"?: number }; Returns: {
+              "blood_pressure_diastolic": number | null,"blood_pressure_systolic": number | null,"check_in_time": string,"chief_complaint": string | null,"completed_at": string | null,"created_at": string,"heart_rate": number | null,"height_cm": number | null,"id": string,"oxygen_saturation": number | null,"patient_age": number | null,"patient_id": string,"patient_mrn": string,"patient_name": string,"patient_sex": string,"provider_id": string,"provider_name": string,"queue_position": number | null,"recorded_at": string | null,"respiratory_rate": number | null,"started_at": string | null,"status": string,"temperature_c": number | null,"version": number,"weight_kg": number | null
+            }[]
+                           },
 "list_platform_audit_events":
 { Args: { "p_limit"?: number }; Returns: {
               "action": string,"actor_role": string,"hospital_id": string,"id": number,"occurred_at": string,"record_id": string,"table_name": string

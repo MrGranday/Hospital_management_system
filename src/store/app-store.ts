@@ -427,6 +427,8 @@ interface AppState {
   setRealPatients: (patients: Patient[]) => void;
   appointmentsVersion: number;
   bumpAppointmentsVersion: () => void;
+  opdVersion: number;
+  bumpOpdVersion: () => void;
   liveAppointments: LiveAppointment[];
   addAppointment: (a: Omit<LiveAppointment, "id" | "status">) => void;
   updateAppointmentStatus: (id: string, status: LiveAppointment["status"]) => void;
@@ -1011,6 +1013,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   setRealPatients: (patients) => set({ realPatients: patients }),
   appointmentsVersion: 0,
   bumpAppointmentsVersion: () => set((s) => ({ appointmentsVersion: s.appointmentsVersion + 1 })),
+  opdVersion: 0,
+  bumpOpdVersion: () => set((s) => ({ opdVersion: s.opdVersion + 1 })),
   liveAppointments: [],
   addAppointment: (a) => {
     aptSeq++;
