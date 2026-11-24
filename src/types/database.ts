@@ -1,4 +1,4 @@
-﻿
+
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
@@ -679,17 +679,17 @@ isOneToOne: false
                   ]
                 },"permissions": {
                   Row: {
-                    "action": string,"created_at": string,"description": string | null,"id": string,"key": string,"module": string
+                    "action": string,"clinical_authoring": boolean,"created_at": string,"description": string | null,"id": string,"key": string,"label": string,"module": string,"sod_group": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "action": string,"created_at"?: string,"description"?: string | null,"id"?: string,"key": string,"module": string
+                    "action": string,"clinical_authoring": boolean,"created_at"?: string,"description"?: string | null,"id"?: string,"key": string,"label": string,"module": string,"sod_group"?: string | null
                   }
                   Update: {
-                    "action"?: string,"created_at"?: string,"description"?: string | null,"id"?: string,"key"?: string,"module"?: string
+                    "action"?: string,"clinical_authoring"?: boolean,"created_at"?: string,"description"?: string | null,"id"?: string,"key"?: string,"label"?: string,"module"?: string,"sod_group"?: string | null
                   }
                   Relationships: [
-                    
+                      
                   ]
                 },"po_lines": {
                   Row: {
@@ -899,14 +899,14 @@ isOneToOne: false
                   ]
                 },"role_permissions": {
                   Row: {
-                    "permission_id": string,"role_id": string
+                    "hospital_id": string,"permission_id": string,"role_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "permission_id": string,"role_id": string
+                    "hospital_id": string,"permission_id": string,"role_id": string
                   }
                   Update: {
-                    "permission_id"?: string,"role_id"?: string
+                    "hospital_id"?: string,"permission_id"?: string,"role_id"?: string
                   }
                   Relationships: [
                     {
@@ -925,17 +925,17 @@ isOneToOne: false
                   ]
                 },"roles": {
                   Row: {
-                    "created_at": string,"id": string,"is_system": boolean,"key": string,"name": string
+                    "created_at": string,"created_by": string | null,"deleted_at": string | null,"description": string | null,"hospital_id": string,"id": string,"is_system": boolean,"key": string,"name": string,"updated_at": string,"updated_by": string | null,"version": number
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"is_system"?: boolean,"key": string,"name": string
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"description"?: string | null,"hospital_id": string,"id"?: string,"is_system"?: boolean,"key": string,"name": string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"is_system"?: boolean,"key"?: string,"name"?: string
+                    "created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"description"?: string | null,"hospital_id"?: string,"id"?: string,"is_system"?: boolean,"key"?: string,"name"?: string,"updated_at"?: string,"updated_by"?: string | null,"version"?: number
                   }
                   Relationships: [
-                    
+                      
                   ]
                 },"services": {
                   Row: {
@@ -1147,14 +1147,14 @@ isOneToOne: false
                   ]
                 },"user_roles": {
                   Row: {
-                    "assigned_at": string,"assigned_by": string | null,"role_id": string,"user_id": string
+                    "assigned_at": string,"assigned_by": string | null,"hospital_id": string,"role_id": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "assigned_at"?: string,"assigned_by"?: string | null,"role_id": string,"user_id": string
+                    "assigned_at"?: string,"assigned_by"?: string | null,"hospital_id"?: string,"role_id": string,"user_id": string
                   }
                   Update: {
-                    "assigned_at"?: string,"assigned_by"?: string | null,"role_id"?: string,"user_id"?: string
+                    "assigned_at"?: string,"assigned_by"?: string | null,"hospital_id"?: string,"role_id"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -1235,7 +1235,7 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                }
+                },
           }
           Views: {
             [_ in never]: never
@@ -1424,8 +1424,8 @@ isOneToOne: false
                            },
 "void_invoice":
 { Args: { "p_invoice_id": string,"p_reason": string }; Returns: boolean
-                           }
-          }
+                            }
+                }
           Enums: {
             [_ in never]: never
           }
@@ -1547,3 +1547,4 @@ export const Constants = {
           }
         }
 } as const
+
