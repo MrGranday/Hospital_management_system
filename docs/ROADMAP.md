@@ -12,7 +12,7 @@ Estimates are for one experienced full-stack developer working with AI assistanc
 
 ## Phase 1 — Foundation + OPD MVP (6–8 weeks)
 1. Supabase projects (staging/prod), CLI, migrations, seed, type generation
-2. Tenancy and auth: `hospitals`, super admin console, hospital provisioning function, username login, admin-managed passwords, MFA, sessions, access-token hook, `requirePermission`, automated tenant-isolation test
+2. Tenancy, modules and auth: `hospitals`, `hospital_modules`, module registry, super admin console (create wizard, module switches, support sessions), hospital provisioning function, username login, admin-managed passwords, MFA, sessions, access-token hook, `requirePermission`, automated tenant-isolation test
 3. RBAC tables, roles seeded, admin UI for users/roles, pgTAP tests
 4. Audit triggers + audit log viewer
 5. Patients (reference module: full CRUD, search, merge, archive, documents)
@@ -32,6 +32,9 @@ Pen test and fixes · WCAG audit and fixes · restore drill · load test at targ
 
 ## Phase 4 — Optional modules (on request)
 Blood bank · Insurance/claims · Payroll · FHIR export.
+
+## Module build rule
+For every module build the **[P1]** items in `MODULE_SPECS.md` first, with tests and RLS, then move on. **[P2]** items wait until all planned modules have their P1 done, unless the owner says otherwise.
 
 ## Working rules for the roadmap
 Do not start a later phase item while an earlier exit criterion is unmet. Each module is "done" only per the definition of done in AGENTS.md. Re-estimate at the end of each phase.

@@ -29,7 +29,8 @@ Human-readable numbers (MRN, invoice no, PO no) come from per-hospital counters 
 - Rates (tax %): `numeric(5,2)`; computed amounts are stored on the line at posting time (never recompute history from today's rate).
 
 ## 5. Core entity groups (initial design, refine in Phase 1)
-- Identity and tenancy: `hospitals`, `profiles` (1:1 auth.users; `hospital_id` null only for super_admin), `roles`/`permissions`/`role_permissions` (global system roles), `user_roles`, `hospital_settings`, `hospital_counters`, `departments`
+- Identity and tenancy: `hospitals`, `modules`, `hospital_modules`, `profiles` (1:1 auth.users; `hospital_id` null only for super_admin), `permissions`, per-hospital `roles` and `role_permissions`, `role_templates`, `hospital_settings`, `hospital_counters`, `support_sessions`, `platform.audit_events` (see PLATFORM_MODULES.md §13)
+- Core shared: `orders`, `charges`, `stock_items`/`stock_batches`/`stock_locations`/`stock_movements`, `dashboard_summaries`
 - Patients: `patients`, `patient_contacts`, `patient_identifiers`, `patient_documents`, `patient_merges`
 - Care: `appointments`, `provider_schedules`, `visits`, `vitals`, `clinical_notes`, `diagnoses`, `allergies`, `problems`, `prescriptions`, `prescription_items`
 - Orders: `lab_orders`, `lab_order_items`, `lab_results`, `imaging_orders`, `imaging_reports`
@@ -77,7 +78,7 @@ Notes:
 - Test every policy with pgTAP in `supabase/tests/`: allowed role, wrong role, other hospital (tenant isolation), anon.
 
 ## 7. Audit
-`audit.events(id, occurred_at, hospital_id, actor_id, actor_role, action, table_name, record_id, before jsonb, after jsonb, request_id, ip, reason)`.
+`audit.events(id, occurred_at, hospital_id, actor_id, actor_name, actor_username, actor_role_name, action, table_name, record_id, record_label, before jsonb, after jsonb, request_id, ip, reason)`.
 Generic trigger on every sensitive table writes INSERT/UPDATE/DELETE events. Reads of PHI (opening a patient chart, printing, exporting) are logged by the server through `audit.log_access()`. Table is append-only, partitioned monthly. Optional: hash chain (`prev_hash`, `hash`) for tamper evidence.
 
 ## 8. Migrations workflow

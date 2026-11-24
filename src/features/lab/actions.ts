@@ -46,39 +46,19 @@ export async function createLabOrderAction(
   }
 
   const supabase = await createSupabaseServerClient();
-
-  // Generate order number from hospital counter
-  const { data: counter } = await supabase
-    .from("hospital_counters")
-    .select("next_value")
-    .eq("hospital_id", actor.hospitalId)
-    .eq("name", "lab_order")
-    .single();
-
-  const nextValue = (counter as unknown as { next_value: number } | null)?.next_value ?? 1;
-  const orderNo = `LAB-${actor.hospitalId.slice(0, 8)}-${String(nextValue).padStart(6, "0")}`;
-
-  await supabase
-    .from("hospital_counters")
-    .update({ next_value: nextValue + 1 })
-    .eq("hospital_id", actor.hospitalId)
-    .eq("name", "lab_order");
-
-  const { data, error } = await supabase.from("lab_orders").insert({
-    hospital_id: actor.hospitalId,
-    patient_id: parsed.data.patientId,
-    visit_id: parsed.data.visitId ?? undefined,
-    provider_id: parsed.data.providerId,
-    order_no: orderNo,
-    status: "ordered",
-    priority: parsed.data.priority,
-    notes: parsed.data.notes,
+  const { data, error } = await supabase.rpc("create_lab_order", {
+    p_patient_id: parsed.data.patientId,
+    p_provider_id: parsed.data.providerId,
+    p_priority: parsed.data.priority,
+    p_notes: parsed.data.notes ?? null,
+    p_tests: [],
+    p_visit_id: parsed.data.visitId ?? null,
   });
 
-  if (error) return { error: "Could not create the lab order. Try again." };
+  if (error || !data) return { error: "Could not create the lab order. Try again." };
 
   revalidatePath("/lab");
-  redirect("/lab");
+  redirect(`/lab/${data}`);
 }
 
 export async function updateLabOrderAction(

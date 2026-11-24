@@ -107,8 +107,8 @@ Concurrency rules: use a `version` integer on editable aggregates (patients, inv
 ## 9. Observability
 Sentry (or equivalent) for errors, with PHI scrubbing. Structured JSON logs with `request_id`, `user_id`, `hospital_id`, `action`. Vercel Analytics/Speed Insights for performance. Supabase logs and `pg_stat_statements` for slow queries. Alerts: error rate, p95 latency, failed logins spike, cron failures, backup failures.
 
-## 10. No per-tenant feature flags
-Every hospital gets every module. Deferred modules (Blood Bank, Insurance, Payroll) do not ship until the owner decides. Short-lived dev flags for unfinished work are fine but must be removed before release.
+## 10. Modules per hospital
+The super admin switches modules on or off per hospital (`hospital_modules`). Modules are declared in `module.config.ts`, enforced in RLS, server actions, routing, and the UI. Details, dependencies, and degradation rules: `PLATFORM_MODULES.md`. Short-lived dev flags for unfinished work are fine but must be removed before release.
 
 ## 11. Architecture decision records
 Any decision that changes this document needs `docs/adr/NNNN-title.md` (context, decision, consequences) and owner approval.

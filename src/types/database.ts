@@ -1319,7 +1319,20 @@ isOneToOne: false
 "list_providers":
 { Args: Record<PropertyKey, never>; Returns: {
               "full_name": string,"user_id": string
-            }[]
+            }[] 
+                           },
+"list_lab_orders":
+{ Args: { "p_limit"?: number }; Returns: {
+              "collected_at": string | null,"completed_at": string | null,"id": string,"order_no": string,"ordered_at": string,"patient_id": string,"patient_mrn": string,"patient_name": string,"priority": string,"provider_id": string,"provider_name": string,"status": string,"version": number
+            }[] 
+                           },
+"list_lab_providers":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "full_name": string,"user_id": string
+            }[] 
+                           },
+"create_lab_order":
+{ Args: { "p_notes"?: string | null,"p_patient_id": string,"p_priority": string,"p_provider_id": string,"p_tests"?: string[],"p_visit_id"?: string | null }; Returns: string
                            },
 "list_opd_queue":
 { Args: { "p_limit"?: number }; Returns: {
@@ -1397,6 +1410,20 @@ isOneToOne: false
       } },
 "verify_lab_result":
 { Args: { "p_result_id": string,"p_verified"?: boolean }; Returns: boolean
+                           },
+"list_invoices":
+{ Args: { "p_limit"?: number }; Returns: {
+              "created_at": string,"credit_minor": number,"currency": string,"id": string,"invoice_no": string,"issued_at": string | null,"paid_minor": number,"patient_id": string,"patient_mrn": string,"patient_name": string,"status": string,"subtotal_minor": number,"tax_minor": number,"total_minor": number,"version": number
+            }[]
+                           },
+"create_invoice":
+{ Args: { "p_currency"?: string,"p_lines"?: unknown,"p_patient_id": string,"p_status"?: string,"p_tax_minor"?: number }; Returns: string
+                           },
+"record_invoice_payment":
+{ Args: { "p_amount_minor": number,"p_invoice_id": string,"p_payment_method": string,"p_reference"?: string | null }; Returns: string
+                           },
+"void_invoice":
+{ Args: { "p_invoice_id": string,"p_reason": string }; Returns: boolean
                            }
           }
           Enums: {

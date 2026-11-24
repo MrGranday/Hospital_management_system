@@ -19,6 +19,8 @@ Supabase (Postgres, Auth, Storage, Realtime) · Vercel · Zod · Vitest · Playw
 | docs/ARCHITECTURE.md | Adding any module, route, API, or background job |
 | docs/DATABASE.md | Touching the schema, migrations, RLS, or queries |
 | docs/SECURITY.md | Touching auth, permissions, PHI, files, money, secrets |
+| docs/MODULE_SPECS.md | Building or changing any module's screens, workflows, statuses, reports. Defines [P1]/[P2] scope per module |
+| docs/PLATFORM_MODULES.md | Super admin, hospital creation, modules on/off, roles, dashboards, support sessions. **Wins over other docs on these topics** |
 | docs/MULTI_TENANCY.md | Anything touching hospitals (tenants), login, `hospital_id`, or the super admin |
 | docs/RBAC.md | Adding or changing roles, permissions, or access checks |
 | docs/CODING_STANDARDS.md | Writing any code |
@@ -45,6 +47,8 @@ Supabase (Postgres, Auth, Storage, Realtime) · Vercel · Zod · Vitest · Playw
 14. **Do not invent features.** If it is not in `docs/SCOPE.md` for the current phase, ask the owner first.
 15. **Tenant isolation.** Every domain table has `hospital_id NOT NULL` and an RLS policy on it. `hospital_id` is taken from the session, never from client input. One hospital must never see another's data, files, cache, or realtime events.
 16. **No outbound messaging.** The product sends no email, SMS, push, or chat messages and has no provider for them. Do not add one.
+17. **Modules.** Every feature belongs to exactly one module declared in its `module.config.ts`. Permissions are `<module>:<resource>:<action>`. Modules talk only through core tables (patients, orders, charges, stock) or another module's `index.ts`. Never import across feature folders. Disabled modules are unreachable (404), enforced in RLS, server, routing, and UI.
+18. **Super admin** sees no hospital data outside an audited support session.
 
 ## 4. Definition of done (every task)
 - [ ] Follows the layering in ARCHITECTURE.md (UI → action → service → repository)

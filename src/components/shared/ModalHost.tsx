@@ -9,8 +9,18 @@ import {
   Syringe, Microscope, Smile, Send, Printer, DollarSign,
 } from "lucide-react";
 import { useAppStore } from "@/store/app-store";
-import { createPatientForUi } from "@/features/patients/ui-actions";
+import { createPatientForUi, listPatientsForUi } from "@/features/patients/ui-actions";
 import { createAppointmentForUi, listProvidersForUi } from "@/features/appointments/ui-actions";
+import {
+  createLabOrderForUi,
+  listLabProvidersForUi,
+  saveLabResultsForUi,
+  verifyLabOrderForUi,
+} from "@/features/lab/ui-actions";
+import type { LabOrderUi } from "@/features/lab/lab-types";
+import { createInvoiceForUi, recordPaymentForUi } from "@/features/billing/ui-actions";
+import type { InvoiceUi } from "@/features/billing/billing-types";
+import { formatMoney } from "@/lib/money";
 import { MEDICINES, DOCTORS, DEPARTMENTS, type Patient } from "@/_legacy/mock-data/data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,74 +31,11 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { printInvoice, printReceipt, printPrescription, printLabReport } from "@/lib/print";
+import { printReceipt, printPrescription, printLabReport } from "@/lib/print";
 
 const money = (n: number) => `$${n.toFixed(2)}`;
 
 const SUPPLIERS = ["PharmaCorp Inc.", "GlobePharma Ltd.", "MediLabs Supplies", "RespiraCare", "DiabeCare Products", "MedEquip Services"];
-
-// Lab test catalog with realistic prices
-const LAB_TEST_CATALOG: { name: string; type: string; price: number }[] = [
-  { name: "Complete Blood Count (CBC)", type: "Hematology", price: 35 },
-  { name: "Lipid Panel", type: "Chemistry", price: 65 },
-  { name: "Basic Metabolic Panel (BMP)", type: "Chemistry", price: 55 },
-  { name: "HbA1c", type: "Chemistry", price: 70 },
-  { name: "TSH (Thyroid)", type: "Chemistry", price: 80 },
-  { name: "Liver Function Test (LFT)", type: "Chemistry", price: 95 },
-  { name: "Urinalysis", type: "Microbiology", price: 25 },
-  { name: "Blood Glucose (Fasting)", type: "Chemistry", price: 20 },
-  { name: "ESR", type: "Hematology", price: 30 },
-  { name: "PT/INR", type: "Hematology", price: 45 },
-  { name: "Troponin I", type: "Chemistry", price: 110 },
-  { name: "D-Dimer", type: "Hematology", price: 90 },
-  { name: "C-Reactive Protein (CRP)", type: "Chemistry", price: 60 },
-  { name: "Vitamin D", type: "Chemistry", price: 120 },
-  { name: "Hemoglobin A1c", type: "Chemistry", price: 70 },
-];
-
-// Dental procedure catalog
-const DENTAL_PROCEDURES: { name: string; price: number }[] = [
-  { name: "Routine Cleaning (Prophylaxis)", price: 120 },
-  { name: "Dental Examination", price: 80 },
-  { name: "Dental X-Ray (Bitewing)", price: 60 },
-  { name: "Panoramic X-Ray", price: 150 },
-  { name: "Tooth Filling (Composite)", price: 250 },
-  { name: "Tooth Filling (Amalgam)", price: 180 },
-  { name: "Root Canal Treatment", price: 1100 },
-  { name: "Tooth Extraction (Simple)", price: 200 },
-  { name: "Tooth Extraction (Surgical)", price: 400 },
-  { name: "Crown Placement", price: 1300 },
-  { name: "Bridge (Per Unit)", price: 1500 },
-  { name: "Dental Implant", price: 4500 },
-  { name: "Teeth Whitening", price: 500 },
-  { name: "Deep Cleaning (Scaling/Root Planing)", price: 350 },
-  { name: "Fluoride Treatment", price: 50 },
-];
-
-const TOOTH_NUMBERS = [
-  "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16",
-  "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32",
-];
-
-// Clinical procedures catalog
-const CLINICAL_PROCEDURES: { name: string; dept: string; price: number }[] = [
-  { name: "Electrocardiogram (ECG)", dept: "Cardiology", price: 150 },
-  { name: "Echocardiography", dept: "Cardiology", price: 800 },
-  { name: "Stress Test (TMT)", dept: "Cardiology", price: 450 },
-  { name: "Cardiac Catheterization", dept: "Cardiology", price: 3500 },
-  { name: "Endoscopy (Upper GI)", dept: "Gastroenterology", price: 1200 },
-  { name: "Colonoscopy", dept: "Gastroenterology", price: 1800 },
-  { name: "Bronchoscopy", dept: "Pulmonology", price: 2200 },
-  { name: "EEG", dept: "Neurology", price: 600 },
-  { name: "EMG (Nerve Conduction)", dept: "Neurology", price: 700 },
-  { name: "Lumbar Puncture", dept: "Neurology", price: 350 },
-  { name: "Joint Injection", dept: "Orthopedics", price: 280 },
-  { name: "Wound Debridement", dept: "General Surgery", price: 320 },
-  { name: "Abscess Incision & Drainage", dept: "General Surgery", price: 250 },
-  { name: "Suture Removal", dept: "General Surgery", price: 80 },
-  { name: "Skin Biopsy", dept: "Dermatology", price: 220 },
-  { name: "Cryotherapy", dept: "Dermatology", price: 180 },
-];
 
 // === ModalHost ===
 export function ModalHost() {
@@ -386,122 +333,40 @@ function NewPrescriptionModal({ onClose }: { onClose: () => void }) {
 
 // === New Invoice Modal (Context-Aware Billing) ===
 function NewInvoiceModal({ onClose }: { onClose: () => void }) {
-  const { closeModal, pushToast, logActivity, addInvoice, modalContext } = useAppStore();
-  const get = useAppStore.getState;
+  const {
+    closeModal,
+    pushToast,
+    logActivity,
+    modalContext,
+    realPatients,
+    setRealPatients,
+    bumpBillingVersion,
+  } = useAppStore();
+  const context = modalContext as unknown as { patientId?: string } | undefined;
   const allPatients = useAllPatients();
   const [serviceType, setServiceType] = useState<string>("");
-  const [patient, setPatient] = useState<string>(modalContext?.patientId ?? "");
-  // Consultation / OPD fields
-  const [doctor, setDoctor] = useState("");
-  const [consultType, setConsultType] = useState("New");
-  const [consultDate, setConsultDate] = useState(new Date().toISOString().slice(0, 10));
-  const [consultFee, setConsultFee] = useState("250");
-  // Lab fields
-  const [testName, setTestName] = useState("");
-  const [testType, setTestType] = useState("Hematology");
-  const [orderingDoc, setOrderingDoc] = useState("");
-  const [sampleInfo, setSampleInfo] = useState("");
-  const [testPrice, setTestPrice] = useState("");
-  // Pharmacy fields
-  const [medicine, setMedicine] = useState("");
-  const [batch, setBatch] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [pharmQty, setPharmQty] = useState("1");
+  const [patient, setPatient] = useState<string>(context?.patientId ?? "");
+  const [description, setDescription] = useState("");
+  const [quantity, setQuantity] = useState("1");
   const [unitPrice, setUnitPrice] = useState("");
-  const [discount, setDiscount] = useState("0");
-  const [taxPct, setTaxPct] = useState("0");
-  // Dental fields
-  const [dentist, setDentist] = useState("");
-  const [toothNums, setToothNums] = useState<string>("");
-  const [dentalProc, setDentalProc] = useState("");
-  const [dentalSession, setDentalSession] = useState("1");
-  const [dentalFee, setDentalFee] = useState("");
-  // Procedure fields
-  const [procName, setProcName] = useState("");
-  const [provider, setProvider] = useState("");
-  const [procDate, setProcDate] = useState(new Date().toISOString().slice(0, 10));
-  const [sessions, setSessions] = useState("1");
-  const [procPrice, setProcPrice] = useState("");
-  // Room fields
-  const [ward, setWard] = useState("");
-  const [roomType, setRoomType] = useState("General");
-  const [days, setDays] = useState("1");
-  const [dailyRate, setDailyRate] = useState("1000");
-  // Other
-  const [desc, setDesc] = useState("");
-  const [otherQty, setOtherQty] = useState("1");
-  const [otherPrice, setOtherPrice] = useState("");
+  const [tax, setTax] = useState("0");
+  const [pending, setPending] = useState(false);
 
-  const { amount, items, department, source } = useMemo(() => {
-    const p = allPatients.find((x) => x.id === patient);
-    if (!p || !serviceType) return { amount: 0, items: [] as any[], department: "", source: "Manual" as const };
-    if (serviceType === "Consultation") {
-      const fee = Number(consultFee) || 0;
-      const docName = doctor || "Assigned Provider";
-      return { amount: fee, items: [{ description: `${consultType} Consultation — ${docName} (${consultDate})`, qty: 1, rate: fee, total: fee }], department: "OPD", source: "Manual" as const };
+  useEffect(() => {
+    if (!realPatients) {
+      void listPatientsForUi().then((result) => {
+        if (result.ok) setRealPatients(result.patients);
+      });
     }
-    if (serviceType === "Laboratory") {
-      const price = Number(testPrice) || 0;
-      const sampleTxt = sampleInfo ? ` · Sample: ${sampleInfo}` : "";
-      return { amount: price, items: [{ description: `Lab Test: ${testName} (${testType}) — Ordered by ${orderingDoc || "N/A"}${sampleTxt}`, qty: 1, rate: price, total: price }], department: "Laboratory", source: "Lab" as const };
-    }
-    if (serviceType === "Pharmacy") {
-      const qty = Number(pharmQty) || 1;
-      const price = Number(unitPrice) || 0;
-      const disc = Number(discount) || 0;
-      const tax = Number(taxPct) || 0;
-      const med = MEDICINES.find((m) => m.id === medicine);
-      const subtotal = qty * price;
-      const taxAmt = subtotal * (tax / 100);
-      const total = subtotal - disc + taxAmt;
-      const medName = med?.name ?? "Medication";
-      const expiryTxt = expiry ? ` · Exp: ${expiry}` : "";
-      return { amount: total, items: [{ description: `${medName} (Batch: ${batch || "N/A"}${expiryTxt})`, qty, rate: price, total }], department: "Pharmacy", source: "Pharmacy" as const };
-    }
-    if (serviceType === "Dental") {
-      const sess = Number(dentalSession) || 1;
-      const fee = Number(dentalFee) || 0;
-      const total = sess * fee;
-      const teeth = toothNums.trim() ? ` · Teeth: ${toothNums}` : "";
-      return { amount: total, items: [{ description: `Dental: ${dentalProc || "Procedure"} — ${dentist || "Dentist"}${teeth} (${sess} session(s))`, qty: sess, rate: fee, total }], department: "Dental", source: "Manual" as const };
-    }
-    if (serviceType === "Procedure") {
-      const sess = Number(sessions) || 1;
-      const price = Number(procPrice) || 0;
-      const total = sess * price;
-      return { amount: total, items: [{ description: `${procName} — ${provider || "Provider"} on ${procDate} (${sess} session(s))`, qty: sess, rate: price, total }], department: "Procedures", source: "Manual" as const };
-    }
-    if (serviceType === "Room Charge") {
-      const d = Number(days) || 1;
-      const rate = Number(dailyRate) || 0;
-      const total = d * rate;
-      return { amount: total, items: [{ description: `${roomType} Room — ${ward} (${d} day(s) @ ${money(rate)}/day)`, qty: d, rate, total }], department: "IPD", source: "IPD" as const };
-    }
-    const qty = Number(otherQty) || 1;
-    const price = Number(otherPrice) || 0;
-    return { amount: qty * price, items: [{ description: desc || "Service", qty, rate: price, total: qty * price }], department: "Other", source: "Manual" as const };
-  }, [serviceType, patient, consultFee, consultType, doctor, consultDate, testName, testType, testPrice, orderingDoc, sampleInfo, medicine, batch, expiry, pharmQty, unitPrice, discount, taxPct, dentist, toothNums, dentalProc, dentalSession, dentalFee, procName, provider, procDate, sessions, procPrice, ward, roomType, days, dailyRate, desc, otherQty, otherPrice, allPatients]);
+  }, [realPatients, setRealPatients]);
 
-  const handleSubmit = () => {
-    const p = allPatients.find((x) => x.id === patient);
-    if (!p) { pushToast({ title: "Select a patient", variant: "warning" }); return; }
-    if (!serviceType) { pushToast({ title: "Select service type", variant: "warning" }); return; }
-    if (amount <= 0) { pushToast({ title: "Amount must be greater than 0", variant: "warning" }); return; }
-    // Service-specific validation
-    if (serviceType === "Laboratory" && !testName.trim()) { pushToast({ title: "Test name is required", variant: "warning" }); return; }
-    if (serviceType === "Pharmacy" && !medicine) { pushToast({ title: "Select a medicine", variant: "warning" }); return; }
-    if (serviceType === "Dental" && !dentalProc) { pushToast({ title: "Select a dental procedure", variant: "warning" }); return; }
-    if (serviceType === "Procedure" && !procName.trim()) { pushToast({ title: "Procedure name is required", variant: "warning" }); return; }
-    if (serviceType === "Room Charge" && !ward) { pushToast({ title: "Select a ward", variant: "warning" }); return; }
-    if (serviceType === "Other" && !desc.trim()) { pushToast({ title: "Description is required", variant: "warning" }); return; }
-
-    get().addInvoice({ patientName: p.name, mrn: p.mrn, amount, paid: 0, department, items, source, serviceType });
-    logActivity({ action: "Created invoice", category: "billing", details: `${p.name} — ${serviceType} — ${money(amount)} (${department})` });
-    pushToast({ title: "Invoice Created ✓", description: `${p.name} — ${money(amount)} — visible in Billing`, variant: "success" });
-    const newInvNumber = `INV-${Date.now()}`;
-    printInvoice({ number: newInvNumber, patientName: p.name, mrn: p.mrn, date: new Date().toISOString(), department, items, amount, paid: 0 });
-    closeModal();
-  };
+  const amountMinor = useMemo(() => {
+    const qty = Math.max(1, Math.floor(Number(quantity) || 1));
+    const priceMinor = Math.round((Number(unitPrice) || 0) * 100);
+    return qty * priceMinor;
+  }, [quantity, unitPrice]);
+  const taxMinor = useMemo(() => Math.round((Number(tax) || 0) * 100), [tax]);
+  const totalMinor = amountMinor + taxMinor;
 
   const serviceTypes = [
     { key: "Consultation", label: "Consultation", icon: Stethoscope, color: "bg-brand-50 text-brand-600" },
@@ -513,17 +378,67 @@ function NewInvoiceModal({ onClose }: { onClose: () => void }) {
     { key: "Other", label: "Other Service", icon: FileText, color: "bg-muted text-muted-foreground" },
   ];
 
+  const handleSubmit = async () => {
+    if (pending) return;
+    if (!patient) {
+      pushToast({ title: "Select a patient", variant: "warning" });
+      return;
+    }
+    if (!serviceType) {
+      pushToast({ title: "Select service type", variant: "warning" });
+      return;
+    }
+    if (!description.trim()) {
+      pushToast({ title: "Enter a description", variant: "warning" });
+      return;
+    }
+    const qty = Math.max(1, Math.floor(Number(quantity) || 1));
+    const priceMinor = Math.round((Number(unitPrice) || 0) * 100);
+    if (priceMinor <= 0) {
+      pushToast({ title: "Unit price must be greater than 0", variant: "warning" });
+      return;
+    }
+
+    setPending(true);
+    const result = await createInvoiceForUi({
+      patientId: patient,
+      currency: "AFN",
+      taxMinor,
+      status: "issued",
+      lines: [{ description: description.trim(), quantity: qty, unitPriceMinor: priceMinor }],
+    });
+    setPending(false);
+
+    if (!result.ok) {
+      pushToast({ title: "Could not create the invoice", description: result.error, variant: "danger" });
+      return;
+    }
+
+    const patientName = allPatients.find((entry) => entry.id === patient)?.name ?? "patient";
+    bumpBillingVersion();
+    logActivity({
+      action: "Created invoice",
+      category: "billing",
+      details: `${patientName} — ${serviceType} — ${formatMoney({ amountMinor: totalMinor, currency: "AFN" })}`,
+    });
+    pushToast({
+      title: "Invoice created",
+      description: `${patientName} — ${formatMoney({ amountMinor: totalMinor, currency: "AFN" })}`,
+      variant: "success",
+    });
+    closeModal();
+  };
+
   return (
-    <ModalShell title="Create Invoice" subtitle="Context-aware billing — select service type first" icon={FileText} iconClass="bg-brand-50 text-brand-600" size="lg" onClose={onClose}
-      footer={<SubmitFooter onClose={closeModal} onSubmit={handleSubmit} label={`Create Invoice · ${money(amount)}`} icon={FileText} disabled={!serviceType || amount <= 0} />}>
+    <ModalShell title="Create Invoice" subtitle="Select a service type, then enter the line item" icon={FileText} iconClass="bg-brand-50 text-brand-600" size="lg" onClose={onClose}
+      footer={<div className="flex items-center justify-between gap-4"><div className="text-sm"><span className="text-muted-foreground">Total: </span><span className="font-bold tabular-nums">{formatMoney({ amountMinor: totalMinor, currency: "AFN" })}</span></div><div className="flex gap-2"><Button variant="outline" onClick={onClose}>Cancel</Button><Button className="bg-brand-600 hover:bg-brand-700" onClick={() => void handleSubmit()} disabled={pending || totalMinor <= 0}><FileText className="h-4 w-4 mr-1.5" />{pending ? "Creating..." : "Create Invoice"}</Button></div></div>}>
       <div className="space-y-4">
-        {/* Service Type Selector */}
         {!serviceType ? (
           <div>
             <Label className="text-xs uppercase text-muted-foreground mb-2 block">Select Service Type</Label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
               {serviceTypes.map((st) => (
-                <button key={st.key} onClick={() => setServiceType(st.key)} className="flex flex-col items-center gap-2 p-4 rounded-xl border border-border hover:border-brand-300 hover:bg-brand-50/30 transition-all">
+                <button key={st.key} onClick={() => { setServiceType(st.key); setDescription(st.key === "Other" ? "" : st.label); }} className="flex flex-col items-center gap-2 p-4 rounded-xl border border-border hover:border-brand-300 hover:bg-brand-50/30 transition-all">
                   <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", st.color)}><st.icon className="h-5 w-5" /></div>
                   <span className="text-sm font-medium">{st.label}</span>
                 </button>
@@ -540,82 +455,16 @@ function NewInvoiceModal({ onClose }: { onClose: () => void }) {
         {serviceType && (
           <>
             <div><Label className="text-xs uppercase text-muted-foreground">Patient</Label><select value={patient} onChange={(e) => setPatient(e.target.value)} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="">Select patient...</option>{allPatients.map((p) => <option key={p.id} value={p.id}>{p.name} ({p.mrn})</option>)}</select></div>
-
-            {serviceType === "Consultation" && (
-              <div className="grid grid-cols-2 gap-3">
-                <div><Label className="text-xs uppercase text-muted-foreground">Doctor / Provider</Label><select value={doctor} onChange={(e) => setDoctor(e.target.value)} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="">Select...</option>{DOCTORS.map((d) => <option key={d.id} value={d.name}>{d.name} — {d.specialty}</option>)}</select></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Consultation Type</Label><select value={consultType} onChange={(e) => setConsultType(e.target.value)} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option>New</option><option>Follow-up</option><option>Emergency</option><option>Telemedicine</option></select></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Appointment Date</Label><Input type="date" value={consultDate} onChange={(e) => setConsultDate(e.target.value)} className="h-9 mt-1" /></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Consultation Fee ($)</Label><Input type="number" value={consultFee} onChange={(e) => setConsultFee(e.target.value)} className="h-9 mt-1" /></div>
-                <div className="col-span-2 p-2 rounded-md bg-accent/40 text-[11px] text-muted-foreground">Quantity is automatically 1 — this is a single consultation visit.</div>
-              </div>
-            )}
-
-            {serviceType === "Laboratory" && (
-              <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2"><Label className="text-xs uppercase text-muted-foreground">Test</Label><select value={testName} onChange={(e) => { setTestName(e.target.value); const t = LAB_TEST_CATALOG.find((x) => x.name === e.target.value); if (t) { setTestType(t.type); setTestPrice(t.price.toString()); } }} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="">Select test or type custom...</option>{LAB_TEST_CATALOG.map((t) => <option key={t.name} value={t.name}>{t.name} ({t.type}) — ${t.price}</option>)}</select></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Test Type</Label><select value={testType} onChange={(e) => setTestType(e.target.value)} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option>Hematology</option><option>Chemistry</option><option>Microbiology</option><option>Pathology</option><option>Immunology</option></select></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Ordering Doctor</Label><select value={orderingDoc} onChange={(e) => setOrderingDoc(e.target.value)} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="">Select...</option>{DOCTORS.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}</select></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Sample Info</Label><Input value={sampleInfo} onChange={(e) => setSampleInfo(e.target.value)} placeholder="e.g., Fasting blood, 5mL serum" className="h-9 mt-1" /></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Test Price ($)</Label><Input type="number" value={testPrice} onChange={(e) => setTestPrice(e.target.value)} className="h-9 mt-1" /></div>
-                <div className="col-span-2 p-2 rounded-md bg-accent/40 text-[11px] text-muted-foreground">Quantity is automatically 1 — each test is performed once per order.</div>
-              </div>
-            )}
-
-            {serviceType === "Pharmacy" && (
-              <div className="grid grid-cols-2 gap-3">
-                <div><Label className="text-xs uppercase text-muted-foreground">Medicine</Label><select value={medicine} onChange={(e) => { setMedicine(e.target.value); const med = MEDICINES.find((m) => m.id === e.target.value); if (med) { setUnitPrice(med.price.toString()); setBatch(med.batch); setExpiry(med.expiry); } }} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="">Select...</option>{MEDICINES.map((m) => <option key={m.id} value={m.id}>{m.name} ({m.generic})</option>)}</select></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Batch Number</Label><Input value={batch} onChange={(e) => setBatch(e.target.value)} placeholder="e.g., BATCH-001" className="h-9 mt-1" /></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Expiration Date</Label><Input type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} className="h-9 mt-1" /></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Quantity</Label><Input type="number" value={pharmQty} onChange={(e) => setPharmQty(e.target.value)} className="h-9 mt-1" /></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Unit Price ($)</Label><Input type="number" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} className="h-9 mt-1" /></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Discount ($)</Label><Input type="number" value={discount} onChange={(e) => setDiscount(e.target.value)} className="h-9 mt-1" /></div>
-                <div className="col-span-2"><Label className="text-xs uppercase text-muted-foreground">Tax (%)</Label><Input type="number" value={taxPct} onChange={(e) => setTaxPct(e.target.value)} className="h-9 mt-1" /></div>
-              </div>
-            )}
-
-            {serviceType === "Dental" && (
-              <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2"><Label className="text-xs uppercase text-muted-foreground">Procedure</Label><select value={dentalProc} onChange={(e) => { setDentalProc(e.target.value); const p = DENTAL_PROCEDURES.find((x) => x.name === e.target.value); if (p) setDentalFee(p.price.toString()); }} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="">Select procedure...</option>{DENTAL_PROCEDURES.map((p) => <option key={p.name} value={p.name}>{p.name} — ${p.price}</option>)}</select></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Dentist</Label><select value={dentist} onChange={(e) => setDentist(e.target.value)} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="">Select...</option>{DOCTORS.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}</select></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Sessions</Label><Input type="number" value={dentalSession} onChange={(e) => setDentalSession(e.target.value)} className="h-9 mt-1" /></div>
-                <div className="col-span-2"><Label className="text-xs uppercase text-muted-foreground">Tooth Number(s) — comma separated</Label><Input value={toothNums} onChange={(e) => setToothNums(e.target.value)} placeholder="e.g., 3, 14, 19" className="h-9 mt-1" /><p className="text-[10px] text-muted-foreground mt-1">Universal numbering 1-32. Leave blank for full-mouth procedures.</p></div>
-                <div className="col-span-2"><Label className="text-xs uppercase text-muted-foreground">Fee per Session ($)</Label><Input type="number" value={dentalFee} onChange={(e) => setDentalFee(e.target.value)} className="h-9 mt-1" /></div>
-              </div>
-            )}
-
-            {serviceType === "Procedure" && (
-              <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2"><Label className="text-xs uppercase text-muted-foreground">Procedure</Label><select value={procName} onChange={(e) => { setProcName(e.target.value); const p = CLINICAL_PROCEDURES.find((x) => x.name === e.target.value); if (p) { setProcPrice(p.price.toString()); setProvider(""); } }} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="">Select procedure or type custom...</option>{CLINICAL_PROCEDURES.map((p) => <option key={p.name} value={p.name}>{p.name} ({p.dept}) — ${p.price}</option>)}</select></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Performing Provider</Label><select value={provider} onChange={(e) => setProvider(e.target.value)} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="">Select...</option>{DOCTORS.map((d) => <option key={d.id} value={d.name}>{d.name} — {d.specialty}</option>)}</select></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Date</Label><Input type="date" value={procDate} onChange={(e) => setProcDate(e.target.value)} className="h-9 mt-1" /></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Sessions / Duration</Label><Input type="number" value={sessions} onChange={(e) => setSessions(e.target.value)} className="h-9 mt-1" /></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Price per Session ($)</Label><Input type="number" value={procPrice} onChange={(e) => setProcPrice(e.target.value)} className="h-9 mt-1" /></div>
-              </div>
-            )}
-
-            {serviceType === "Room Charge" && (
-              <div className="grid grid-cols-2 gap-3">
-                <div><Label className="text-xs uppercase text-muted-foreground">Ward</Label><select value={ward} onChange={(e) => setWard(e.target.value)} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="">Select...</option><option>ICU</option><option>CCU</option><option>General Ward A</option><option>General Ward B</option><option>Pediatric</option><option>Maternity</option></select></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Room Type</Label><select value={roomType} onChange={(e) => setRoomType(e.target.value)} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option>General</option><option>Private</option><option>Semi-Private</option><option>ICU</option><option>Suite</option></select></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Days</Label><Input type="number" value={days} onChange={(e) => setDays(e.target.value)} className="h-9 mt-1" /></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Daily Rate ($)</Label><Input type="number" value={dailyRate} onChange={(e) => setDailyRate(e.target.value)} className="h-9 mt-1" /></div>
-              </div>
-            )}
-
-            {serviceType === "Other" && (
-              <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2"><Label className="text-xs uppercase text-muted-foreground">Description</Label><Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Service description" className="h-9 mt-1" /></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Quantity</Label><Input type="number" value={otherQty} onChange={(e) => setOtherQty(e.target.value)} className="h-9 mt-1" /></div>
-                <div><Label className="text-xs uppercase text-muted-foreground">Unit Price ($)</Label><Input type="number" value={otherPrice} onChange={(e) => setOtherPrice(e.target.value)} className="h-9 mt-1" /></div>
-              </div>
-            )}
-
-            {/* Live total */}
-            {amount > 0 && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="col-span-2"><Label className="text-xs uppercase text-muted-foreground">Description</Label><Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="e.g. Consultation fee" className="h-9 mt-1" /></div>
+              <div><Label className="text-xs uppercase text-muted-foreground">Quantity</Label><Input type="number" min="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} className="h-9 mt-1" /></div>
+              <div><Label className="text-xs uppercase text-muted-foreground">Unit Price (AFN)</Label><Input type="number" min="0" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} className="h-9 mt-1" /></div>
+              <div className="col-span-2"><Label className="text-xs uppercase text-muted-foreground">Tax (AFN)</Label><Input type="number" min="0" value={tax} onChange={(e) => setTax(e.target.value)} className="h-9 mt-1" /></div>
+            </div>
+            {totalMinor > 0 && (
               <div className="p-3 rounded-lg bg-brand-50 border border-brand-200 flex items-center justify-between">
                 <span className="text-sm text-brand-700">Total Amount:</span>
-                <span className="text-lg font-bold text-brand-700 tabular-nums">{money(amount)}</span>
+                <span className="text-lg font-bold text-brand-700 tabular-nums">{formatMoney({ amountMinor: totalMinor, currency: "AFN" })}</span>
               </div>
             )}
           </>
@@ -627,58 +476,121 @@ function NewInvoiceModal({ onClose }: { onClose: () => void }) {
 
 // === New Lab Order Modal ===
 function NewLabOrderModal({ onClose }: { onClose: () => void }) {
-  const { closeModal, pushToast, logActivity, addLabOrder, addInvoice, modalContext } = useAppStore();
-  const get = useAppStore.getState;
+  const {
+    closeModal,
+    pushToast,
+    logActivity,
+    modalContext,
+    realPatients,
+    setRealPatients,
+    bumpLabVersion,
+  } = useAppStore();
+  const context = modalContext as unknown as { patientId?: string } | undefined;
   const allPatients = useAllPatients();
-  const [patient, setPatient] = useState<string>(modalContext?.patientId ?? "");
-  const [doctor, setDoctor] = useState("");
-  const [selectedTests, setSelectedTests] = useState<string[]>([]);
-  const [priority, setPriority] = useState<"routine" | "urgent" | "stat">("routine");
+  const [patient, setPatient] = useState<string>(context?.patientId ?? "");
+  const [provider, setProvider] = useState("");
+  const [providers, setProviders] = useState<{ id: string; name: string }[]>([]);
+  const [priority, setPriority] = useState<LabOrderUi["priority"]>("routine");
+  const [tests, setTests] = useState<string[]>([]);
+  const [testInput, setTestInput] = useState("");
+  const [pending, setPending] = useState(false);
 
-  const toggleTest = (name: string) => {
-    setSelectedTests((prev) => prev.includes(name) ? prev.filter((t) => t !== name) : [...prev, name]);
+  useEffect(() => {
+    let active = true;
+
+    if (!realPatients) {
+      void listPatientsForUi().then((result) => {
+        if (active && result.ok) setRealPatients(result.patients);
+      });
+    }
+
+    void listLabProvidersForUi().then((result) => {
+      if (active && result.ok) setProviders(result.providers);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [realPatients, setRealPatients]);
+
+  const addTest = () => {
+    const name = testInput.trim();
+    if (!name) return;
+    setTests((prev) => (prev.includes(name) ? prev : [...prev, name]));
+    setTestInput("");
   };
 
-  const totalCost = selectedTests.reduce((sum, name) => {
-    const t = LAB_TEST_CATALOG.find((x) => x.name === name);
-    return sum + (t?.price ?? 0);
-  }, 0);
+  const removeTest = (name: string) => {
+    setTests((prev) => prev.filter((test) => test !== name));
+  };
 
-  const handleSubmit = () => {
-    const p = allPatients.find((x) => x.id === patient);
-    if (!p) { pushToast({ title: "Select patient", variant: "warning" }); return; }
-    if (selectedTests.length === 0) { pushToast({ title: "Select at least one test", variant: "warning" }); return; }
-    addLabOrder({ patientName: p.name, mrn: p.mrn, orderedBy: doctor || get().user?.name || "Doctor", tests: selectedTests, priority, source: "EMR" });
-    addInvoice({
-      patientName: p.name, mrn: p.mrn, amount: totalCost, paid: 0, department: "Laboratory",
-      items: selectedTests.map((name) => { const t = LAB_TEST_CATALOG.find((x) => x.name === name); return { description: `Lab Test: ${name}`, qty: 1, rate: t?.price ?? 0, total: t?.price ?? 0 }; }),
-      source: "Lab", serviceType: "Laboratory",
+  const handleSubmit = async () => {
+    if (pending) return;
+    if (!patient) {
+      pushToast({ title: "Select a patient", variant: "warning" });
+      return;
+    }
+    if (!provider) {
+      pushToast({ title: "Select an ordering provider", variant: "warning" });
+      return;
+    }
+    if (tests.length === 0) {
+      pushToast({ title: "Add at least one test", variant: "warning" });
+      return;
+    }
+
+    setPending(true);
+    const result = await createLabOrderForUi({
+      patientId: patient,
+      providerId: provider,
+      priority,
+      tests,
     });
-    logActivity({ action: "Placed lab order", category: "clinical", details: `${selectedTests.length} test(s) for ${p.name} → sent to Lab & Billing` });
-    pushToast({ title: "Lab Order Placed ✓", description: `${selectedTests.length} test(s) for ${p.name} — invoice ${money(totalCost)} sent to Billing`, variant: "success" });
+    setPending(false);
+
+    if (!result.ok) {
+      pushToast({ title: "Could not create the lab order", description: result.error, variant: "danger" });
+      return;
+    }
+
+    const patientName = allPatients.find((entry) => entry.id === patient)?.name ?? "patient";
+    bumpLabVersion();
+    logActivity({
+      action: "Created lab order",
+      category: "lab",
+      details: `${tests.length} test(s) for ${patientName}`,
+    });
+    pushToast({
+      title: "Lab order placed",
+      description: `${tests.length} test(s) for ${patientName}`,
+      variant: "success",
+    });
     closeModal();
   };
 
   return (
     <ModalShell title="New Lab Order" subtitle="Order lab tests for a patient" icon={FlaskConical} iconClass="bg-violet-50 text-violet-600" size="lg" onClose={onClose}
-      footer={<div className="flex items-center justify-between gap-4"><div className="text-sm"><span className="text-muted-foreground">Total: </span><span className="font-bold tabular-nums">{money(totalCost)}</span></div><SubmitFooter onClose={closeModal} onSubmit={handleSubmit} label="Place Lab Order" icon={FlaskConical} /></div>}>
+      footer={<div className="flex items-center justify-end gap-2"><Button variant="outline" onClick={onClose}>Cancel</Button><Button className="bg-brand-600 hover:bg-brand-700" onClick={() => void handleSubmit()} disabled={pending}><FlaskConical className="h-4 w-4 mr-1.5" />{pending ? "Placing..." : "Place Lab Order"}</Button></div>}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div><Label className="text-xs uppercase text-muted-foreground">Patient</Label><select value={patient} onChange={(e) => setPatient(e.target.value)} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="">Select...</option>{allPatients.map((p) => <option key={p.id} value={p.id}>{p.name} ({p.mrn})</option>)}</select></div>
-        <div><Label className="text-xs uppercase text-muted-foreground">Ordering Doctor</Label><select value={doctor} onChange={(e) => setDoctor(e.target.value)} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="">Select...</option>{DOCTORS.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}</select></div>
-        <div><Label className="text-xs uppercase text-muted-foreground">Priority</Label><select value={priority} onChange={(e) => setPriority(e.target.value as any)} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="routine">Routine</option><option value="urgent">Urgent</option><option value="stat">STAT</option></select></div>
+        <div><Label className="text-xs uppercase text-muted-foreground">Ordering Provider</Label><select value={provider} onChange={(e) => setProvider(e.target.value)} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="">Select...</option>{providers.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+        <div><Label className="text-xs uppercase text-muted-foreground">Priority</Label><select value={priority} onChange={(e) => setPriority(e.target.value as LabOrderUi["priority"])} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="routine">Routine</option><option value="urgent">Urgent</option><option value="stat">STAT</option></select></div>
         <div className="md:col-span-2">
-          <Label className="text-xs uppercase text-muted-foreground">Tests (click to select)</Label>
-          <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-[260px] overflow-y-auto p-1 rounded-lg border border-border bg-card">
-            {LAB_TEST_CATALOG.map((t) => (
-              <button key={t.name} type="button" onClick={() => toggleTest(t.name)} className={cn("text-left p-2 rounded-md text-xs border transition-all", selectedTests.includes(t.name) ? "border-brand-400 bg-brand-50 text-brand-700" : "border-transparent hover:bg-accent")}>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-medium">{t.name}</span>
-                  <span className="text-[10px] text-muted-foreground shrink-0">${t.price}</span>
-                </div>
-                <span className="text-[10px] text-muted-foreground">{t.type}</span>
-              </button>
-            ))}
+          <Label className="text-xs uppercase text-muted-foreground">Tests</Label>
+          <div className="flex gap-2 mt-1">
+            <Input value={testInput} onChange={(e) => setTestInput(e.target.value)} placeholder="e.g. Complete Blood Count" className="h-9" onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTest(); } }} />
+            <Button type="button" variant="outline" className="h-9" onClick={addTest}>Add</Button>
           </div>
+          {tests.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {tests.map((test) => (
+                <span key={test} className="inline-flex items-center gap-1 rounded-md border border-brand-200 bg-brand-50 px-2 py-1 text-xs text-brand-700">
+                  {test}
+                  <button type="button" onClick={() => removeTest(test)} className="text-brand-500 hover:text-brand-700"><X className="h-3 w-3" /></button>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </ModalShell>
@@ -686,43 +598,121 @@ function NewLabOrderModal({ onClose }: { onClose: () => void }) {
 }
 
 // === Lab Result Viewer ===
+type LabResultDraft = { result: string; range: string; flag: "normal" | "high" | "low" };
+
 function LabResultModal({ onClose }: { onClose: () => void }) {
-  const { closeModal, pushToast, logActivity, updateLabOrderStatus, modalContext } = useAppStore();
-  const order = modalContext?.order;
-  const [results, setResults] = useState<any[]>(
-    order?.results ?? order?.tests?.map((t: string) => ({ name: t, result: "", range: "", flag: "normal" as const })) ?? []
-  );
+  const { closeModal, pushToast, logActivity, modalContext, bumpLabVersion } = useAppStore();
+  const context = modalContext as unknown as
+    | { order?: LabOrderUi; canCreate?: boolean; canVerify?: boolean }
+    | undefined;
+  const order = context?.order;
+  const canCreate = context?.canCreate ?? false;
+  const canVerify = context?.canVerify ?? false;
+  const [drafts, setDrafts] = useState<Record<string, LabResultDraft>>(() => {
+    const next: Record<string, LabResultDraft> = {};
+    for (const test of order?.tests ?? []) {
+      next[test.id] = {
+        result: test.resultValue ?? "",
+        range: test.referenceRange ?? "",
+        flag: test.isAbnormal ? "high" : "normal",
+      };
+    }
+    return next;
+  });
+  const [pending, setPending] = useState<"save" | "verify" | null>(null);
 
   if (!order) {
     return <ModalShell title="Lab Result" subtitle="No order selected" icon={FlaskConical} iconClass="bg-violet-50 text-violet-600" onClose={onClose} footer={<Button variant="outline" onClick={onClose}>Close</Button>}><p className="text-sm text-muted-foreground">No lab order selected.</p></ModalShell>;
   }
 
-  const updateResult = (i: number, field: string, value: string) => {
-    setResults((prev) => prev.map((r, idx) => idx === i ? { ...r, [field]: value, flag: field === "result" ? autoFlag(value, r.range) : r.flag } : r));
+  const updateDraft = (id: string, patch: Partial<LabResultDraft>) => {
+    setDrafts((prev) => {
+      const current = prev[id] ?? { result: "", range: "", flag: "normal" as const };
+      return { ...prev, [id]: { ...current, ...patch } };
+    });
   };
 
-  const autoFlag = (result: string, range: string): "normal" | "high" | "low" => {
-    const num = parseFloat(result);
-    if (!num || !range) return "normal";
-    const m = range.match(/(\d+\.?\d*)\s*[-–]\s*(\d+\.?\d*)/);
-    if (!m) return "normal";
-    const lo = parseFloat(m[1]!); const hi = parseFloat(m[2]!);
-    if (num > hi) return "high";
-    if (num < lo) return "low";
-    return "normal";
+  const buildRows = () =>
+    order.tests
+      .map((test) => {
+        const draft = drafts[test.id];
+        if (!draft || !draft.result.trim()) return null;
+        return {
+          itemId: test.id,
+          resultValue: draft.result.trim(),
+          referenceRange: draft.range.trim(),
+          isAbnormal: draft.flag !== "normal",
+        };
+      })
+      .filter((row): row is NonNullable<typeof row> => row !== null);
+
+  const saveResults = async (): Promise<boolean> => {
+    const rows = buildRows();
+    if (rows.length === 0) {
+      pushToast({ title: "Enter at least one result", variant: "warning" });
+      return false;
+    }
+
+    const result = await saveLabResultsForUi({ orderId: order.id, results: rows });
+    if (!result.ok) {
+      pushToast({ title: "Could not save results", description: result.error, variant: "danger" });
+      return false;
+    }
+
+    bumpLabVersion();
+    logActivity({ action: "Saved lab results", category: "lab", details: `${order.number} — ${result.saved} test(s)` });
+    pushToast({ title: "Results saved", description: `${result.saved} test(s)`, variant: "success" });
+    return true;
   };
 
-  const handleVerify = () => {
-    updateLabOrderStatus(order.id, "verified", results);
-    logActivity({ action: "Verified lab results", category: "clinical", details: `${order.number} — ${order.patientName}` });
-    pushToast({ title: "Results Verified ✓", description: `${order.number} marked as verified`, variant: "success" });
-    printLabReport({ number: order.number, patientName: order.patientName, mrn: order.mrn, date: new Date().toISOString(), orderedBy: order.orderedBy, tests: results });
+  const handleSave = async () => {
+    if (pending) return;
+    setPending("save");
+    await saveResults();
+    setPending(null);
+  };
+
+  const handleVerify = async () => {
+    if (pending) return;
+    setPending("verify");
+    const saved = await saveResults();
+    if (!saved) {
+      setPending(null);
+      return;
+    }
+
+    const verified = await verifyLabOrderForUi({ orderId: order.id });
+    setPending(null);
+    if (!verified.ok) {
+      pushToast({ title: "Results saved, verification failed", description: verified.error, variant: "warning" });
+      return;
+    }
+
+    bumpLabVersion();
+    logActivity({ action: "Verified lab results", category: "lab", details: `${order.number} — ${verified.verified} test(s)` });
+    pushToast({ title: "Results verified", description: `${verified.verified} test(s) verified`, variant: "success" });
+    printLabReport({
+      number: order.number,
+      patientName: order.patientName,
+      mrn: order.mrn,
+      date: new Date().toISOString(),
+      orderedBy: order.orderedBy,
+      tests: order.tests.map((test) => {
+        const draft = drafts[test.id];
+        return {
+          name: test.name,
+          result: draft?.result.trim() || "Pending",
+          range: draft?.range.trim() || "—",
+          flag: draft?.flag ?? "normal",
+        };
+      }),
+    });
     closeModal();
   };
 
   return (
     <ModalShell title="Lab Results" subtitle={`${order.number} — ${order.patientName}`} icon={FlaskConical} iconClass="bg-violet-50 text-violet-600" size="lg" onClose={onClose}
-      footer={<div className="flex items-center justify-end gap-2"><Button variant="outline" onClick={onClose}>Close</Button><Button className="bg-brand-600 hover:bg-brand-700" onClick={handleVerify}><CheckCircle2 className="h-4 w-4 mr-1.5" />Verify & Print</Button></div>}>
+      footer={<div className="flex items-center justify-end gap-2"><Button variant="outline" onClick={onClose}>Close</Button>{canCreate && <Button variant="outline" onClick={() => void handleSave()} disabled={pending !== null}>{pending === "save" ? "Saving..." : "Save Results"}</Button>}{canCreate && canVerify && <Button className="bg-brand-600 hover:bg-brand-700" onClick={() => void handleVerify()} disabled={pending !== null}><CheckCircle2 className="h-4 w-4 mr-1.5" />{pending === "verify" ? "Verifying..." : "Save & Verify"}</Button>}</div>}>
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div><span className="text-muted-foreground text-xs">Patient:</span> <span className="font-medium">{order.patientName}</span></div>
@@ -730,22 +720,29 @@ function LabResultModal({ onClose }: { onClose: () => void }) {
           <div><span className="text-muted-foreground text-xs">Ordered by:</span> <span className="font-medium">{order.orderedBy}</span></div>
           <div><span className="text-muted-foreground text-xs">Priority:</span> <span className="font-medium uppercase">{order.priority}</span></div>
         </div>
-        <div className="space-y-2">
-          {results.map((r, i) => (
-            <div key={i} className="grid grid-cols-12 gap-2 items-center p-2 rounded-md border border-border bg-card">
-              <div className="col-span-4 text-sm font-medium">{r.name}</div>
-              <div className="col-span-3"><Input placeholder="Result" value={r.result} onChange={(e) => updateResult(i, "result", e.target.value)} className="h-8 text-xs" /></div>
-              <div className="col-span-3"><Input placeholder="Ref range (e.g. 4.0-11.0)" value={r.range} onChange={(e) => updateResult(i, "range", e.target.value)} className="h-8 text-xs" /></div>
-              <div className="col-span-2">
-                <select value={r.flag} onChange={(e) => updateResult(i, "flag", e.target.value)} className="w-full h-8 px-2 rounded-md border border-border bg-card text-xs">
-                  <option value="normal">Normal</option>
-                  <option value="high">High</option>
-                  <option value="low">Low</option>
-                </select>
-              </div>
-            </div>
-          ))}
-        </div>
+        {order.tests.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No tests on this order.</p>
+        ) : (
+          <div className="space-y-2">
+            {order.tests.map((test) => {
+              const draft = drafts[test.id] ?? { result: "", range: "", flag: "normal" as const };
+              return (
+                <div key={test.id} className="grid grid-cols-12 gap-2 items-center p-2 rounded-md border border-border bg-card">
+                  <div className="col-span-4 text-sm font-medium">{test.name}</div>
+                  <div className="col-span-3"><Input placeholder="Result" value={draft.result} onChange={(e) => updateDraft(test.id, { result: e.target.value })} className="h-8 text-xs" /></div>
+                  <div className="col-span-3"><Input placeholder="Ref range (e.g. 4.0-11.0)" value={draft.range} onChange={(e) => updateDraft(test.id, { range: e.target.value })} className="h-8 text-xs" /></div>
+                  <div className="col-span-2">
+                    <select value={draft.flag} onChange={(e) => updateDraft(test.id, { flag: e.target.value as LabResultDraft["flag"] })} className="w-full h-8 px-2 rounded-md border border-border bg-card text-xs">
+                      <option value="normal">Normal</option>
+                      <option value="high">High</option>
+                      <option value="low">Low</option>
+                    </select>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </ModalShell>
   );
@@ -1674,38 +1671,71 @@ function NewNoteModal({ onClose }: { onClose: () => void }) {
 }
 
 // === Collect Payment Modal ===
+const PAYMENT_METHODS = [
+  { value: "cash", label: "Cash", icon: Banknote },
+  { value: "card", label: "Card", icon: CreditCard },
+  { value: "insurance", label: "Insurance", icon: Shield },
+  { value: "transfer", label: "Bank Transfer", icon: Wallet },
+] as const;
+
+type PaymentMethod = (typeof PAYMENT_METHODS)[number]["value"];
+
 function CollectPaymentModal({ onClose }: { onClose: () => void }) {
-  const { closeModal, pushToast, logActivity, payInvoice, modalContext } = useAppStore();
-  const invoice = modalContext?.invoice;
-  const balance = invoice ? invoice.amount - invoice.paid : 0;
-  const [amount, setAmount] = useState(balance.toFixed(2));
-  const [method, setMethod] = useState<"Cash" | "Card" | "Insurance" | "Bank Transfer">("Cash");
+  const { closeModal, pushToast, logActivity, bumpBillingVersion, modalContext } = useAppStore();
+  const context = modalContext as unknown as { invoice?: InvoiceUi; canCreate?: boolean } | undefined;
+  const invoice = context?.invoice;
+  const canCreate = context?.canCreate ?? false;
+  const [amount, setAmount] = useState(invoice ? (invoice.balanceMinor / 100).toFixed(2) : "");
+  const [method, setMethod] = useState<PaymentMethod>("cash");
+  const [reference, setReference] = useState("");
+  const [pending, setPending] = useState(false);
 
   if (!invoice) {
     return <ModalShell title="Collect Payment" subtitle="No invoice selected" icon={DollarSign} iconClass="bg-emerald-50 text-emerald-600" onClose={onClose} footer={<Button variant="outline" onClick={onClose}>Close</Button>}><p className="text-sm text-muted-foreground">No invoice selected.</p></ModalShell>;
   }
 
-  const handleSubmit = () => {
-    const amt = Number(amount);
-    if (!amt || amt <= 0) { pushToast({ title: "Enter a valid amount", variant: "warning" }); return; }
-    if (amt > balance + 0.01) { pushToast({ title: "Amount exceeds balance", description: `Balance is ${money(balance)}`, variant: "warning" }); return; }
-    payInvoice(invoice.id, amt);
-    logActivity({ action: "Collected payment", category: "billing", details: `${invoice.number} — ${money(amt)} via ${method}` });
-    pushToast({ title: "Payment Collected ✓", description: `${money(amt)} for ${invoice.number} via ${method}`, variant: "success" });
+  const handleSubmit = async () => {
+    if (pending || !canCreate) return;
+    const amountMajor = Number(amount);
+    if (!amountMajor || amountMajor <= 0) { pushToast({ title: "Enter a valid amount", variant: "warning" }); return; }
+    const amountMinor = Math.round(amountMajor * 100);
+    if (amountMinor > invoice.balanceMinor) {
+      pushToast({ title: "Amount exceeds balance", description: `Balance is ${formatMoney({ amountMinor: invoice.balanceMinor, currency: invoice.currency })}`, variant: "warning" });
+      return;
+    }
+
+    setPending(true);
+    const result = await recordPaymentForUi({
+      invoiceId: invoice.id,
+      amountMinor,
+      paymentMethod: method,
+      reference: reference.trim(),
+    });
+    setPending(false);
+
+    if (!result.ok) {
+      pushToast({ title: "Could not collect payment", description: result.error, variant: "danger" });
+      return;
+    }
+
+    bumpBillingVersion();
+    logActivity({ action: "Collected payment", category: "billing", details: `${invoice.number} — ${formatMoney({ amountMinor, currency: invoice.currency })} via ${method}` });
+    pushToast({ title: "Payment Collected", description: `${formatMoney({ amountMinor, currency: invoice.currency })} for ${invoice.number} via ${method}`, variant: "success" });
     closeModal();
   };
 
   return (
     <ModalShell title="Collect Payment" subtitle={`${invoice.number} — ${invoice.patientName}`} icon={DollarSign} iconClass="bg-emerald-50 text-emerald-600" onClose={onClose}
-      footer={<SubmitFooter onClose={closeModal} onSubmit={handleSubmit} label={`Collect ${money(Number(amount) || 0)}`} icon={DollarSign} disabled={!invoice} />}>
+      footer={<div className="flex items-center justify-end gap-2"><Button variant="outline" onClick={onClose}>Cancel</Button><Button className="bg-emerald-600 hover:bg-emerald-700" onClick={() => void handleSubmit()} disabled={pending || !canCreate}><DollarSign className="h-4 w-4 mr-1.5" />{pending ? "Collecting..." : "Collect Payment"}</Button></div>}>
       <div className="space-y-4">
         <div className="grid grid-cols-3 gap-2 p-3 rounded-lg bg-accent/30 border border-border text-sm">
-          <div><p className="text-[10px] uppercase text-muted-foreground">Total</p><p className="font-bold tabular-nums">{money(invoice.amount)}</p></div>
-          <div><p className="text-[10px] uppercase text-muted-foreground">Paid</p><p className="font-bold tabular-nums text-emerald-600">{money(invoice.paid)}</p></div>
-          <div><p className="text-[10px] uppercase text-muted-foreground">Balance</p><p className="font-bold tabular-nums text-rose-600">{money(balance)}</p></div>
+          <div><p className="text-[10px] uppercase text-muted-foreground">Total</p><p className="font-bold tabular-nums">{formatMoney({ amountMinor: invoice.totalMinor, currency: invoice.currency })}</p></div>
+          <div><p className="text-[10px] uppercase text-muted-foreground">Paid</p><p className="font-bold tabular-nums text-emerald-600">{formatMoney({ amountMinor: invoice.paidMinor, currency: invoice.currency })}</p></div>
+          <div><p className="text-[10px] uppercase text-muted-foreground">Balance</p><p className="font-bold tabular-nums text-rose-600">{formatMoney({ amountMinor: invoice.balanceMinor, currency: invoice.currency })}</p></div>
         </div>
-        <div><Label className="text-xs uppercase text-muted-foreground">Amount to Collect ($)</Label><Input type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="h-9 mt-1" autoFocus /></div>
-        <div><Label className="text-xs uppercase text-muted-foreground">Payment Method</Label><div className="grid grid-cols-4 gap-1.5 mt-1">{(["Cash", "Card", "Insurance", "Bank Transfer"] as const).map((m) => { const Icon = m === "Cash" ? Banknote : m === "Card" ? CreditCard : m === "Insurance" ? Shield : Wallet; return <button key={m} onClick={() => setMethod(m)} className={cn("flex flex-col items-center gap-1 p-2 rounded-lg border text-xs font-medium", method === m ? "border-brand-400 bg-brand-50 text-brand-700" : "border-border")}><Icon className="h-4 w-4" />{m}</button>; })}</div></div>
+        <div><Label className="text-xs uppercase text-muted-foreground">Amount to Collect ({invoice.currency})</Label><Input type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="h-9 mt-1" autoFocus /></div>
+        <div><Label className="text-xs uppercase text-muted-foreground">Payment Method</Label><div className="grid grid-cols-4 gap-1.5 mt-1">{PAYMENT_METHODS.map((option) => { const Icon = option.icon; return <button key={option.value} onClick={() => setMethod(option.value)} className={cn("flex flex-col items-center gap-1 p-2 rounded-lg border text-xs font-medium", method === option.value ? "border-brand-400 bg-brand-50 text-brand-700" : "border-border")}><Icon className="h-4 w-4" />{option.label}</button>; })}</div></div>
+        <div><Label className="text-xs uppercase text-muted-foreground">Reference (optional)</Label><Input value={reference} onChange={(e) => setReference(e.target.value)} className="h-9 mt-1" placeholder="Receipt or transaction reference" /></div>
       </div>
     </ModalShell>
   );

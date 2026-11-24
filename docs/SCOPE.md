@@ -4,7 +4,7 @@ Status: authoritative. Anything not listed under "In scope" needs owner approval
 
 ## 1. Product statement
 A web-based, multi-tenant hospital/clinic management system. A platform owner (`super_admin`) creates hospitals;
-each hospital is an isolated tenant that gets every module and never sees another hospital's data.
+each hospital is an isolated tenant that gets only the modules the super admin switches on (modular monolith, see PLATFORM_MODULES.md) and never sees another hospital's data.
 Target size per hospital: up to ~500 staff users. See MULTI_TENANCY.md.
 It manages the patient journey (register → appointment → visit → orders → dispense/bill → follow-up),
 the money around it, the stock behind it, and the staff who run it, with a full audit trail.
@@ -46,6 +46,7 @@ Blood Bank · Insurance/claims · Payroll · FHIR/HL7 export.
 Blood bank is deferred, not deleted. Every hospital gets every shipped module, so build it only when the owner decides it ships to all.
 
 ### 2.4 In scope — final module list
+> Detailed functionality, workflows, statuses, reports and the P1/P2 build tags for every module are in `MODULE_SPECS.md`, which wins over the summaries below.
 
 **Phase 1 (MVP, one hospital can run OPD end-to-end)**
 0. Platform: super admin creates, suspends, and reactivates hospitals (MULTI_TENANCY.md)

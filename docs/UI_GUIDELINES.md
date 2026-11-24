@@ -56,7 +56,7 @@ Keep the good parts the audit praised: grouped sidebar, command palette, tabular
 
 ## 4. Layout and navigation
 - App shell: left sidebar (grouped by workflow: Front desk, Clinical, Diagnostics, Pharmacy & Stores, Finance, Admin), top bar with hospital name, global search, alerts, user menu.
-- Sidebar shows only modules the user has permission for.
+- Sidebar is generated from the module registry and shows only modules the hospital has enabled and tabs the user has permission for (PLATFORM_MODULES.md §8).
 - One URL per screen; breadcrumbs on detail pages; back button works.
 - List screens: filters on top, table, pagination footer. Row click opens detail page (or a side sheet for quick view). Sticky header.
 - Detail screens: persistent patient banner (name, age/sex, MRN, allergies, alerts) on every clinical screen.

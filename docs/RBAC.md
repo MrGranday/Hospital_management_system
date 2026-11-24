@@ -1,5 +1,7 @@
 # RBAC.md — Roles and permissions
 
+> **Update:** roles are created per hospital by the hospital admin and limited to the hospital's enabled modules. The 12 roles in section 3 are **role templates**, not fixed roles. Permission keys are `<module>:<resource>:<action>` (e.g. `patients:read` is now `reception:patient:read`). The super admin enters a hospital only through a support session. See `PLATFORM_MODULES.md` §7, §9, §10, which win over this file.
+
 ## 1. How real hospitals do it
 There is no standard number. Small clinics run with 5–8 roles; mid-size hospitals 12–20; large ones 30+ with department variants.
 The common backbone is the same: administration, clinical (doctor, nurse), front office (reception), diagnostics (lab, radiology), pharmacy, finance/billing, stores/inventory, HR, and oversight (auditor).
@@ -55,14 +57,6 @@ Notes:
 | Settings | ✓ | V,U (non-security) | – | – | – | – | – | – | – | – | – | V |
 
 The matrix is documentation. The source of truth is `role_permissions`. A test asserts the seeded permissions match this table.
-
-### 5.1 Catalog additions (2026-11-23)
-RLS policies and server actions already enforced `purchasing:*`, `pharmacy:*` and `lab:verify`, but those keys were never seeded, so the checks always denied. `20261123100000_permission_catalog_fix.sql` adds them:
-- `purchasing:read` → hospital_admin, inventory_manager, accountant, auditor
-- `purchasing:create`, `purchasing:update` → inventory_manager
-- `pharmacy:read` → hospital_admin, pharmacist, auditor
-- `pharmacy:create`, `pharmacy:update` → pharmacist
-- `lab:verify` → lab_technician
 
 ## 5. Rules for adding or changing a permission
 1. Add the string to `permissions` via a migration. Never invent a permission only in TypeScript.

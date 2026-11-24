@@ -1,10 +1,10 @@
 # MULTI_TENANCY.md — One platform, many hospitals, zero data mixing
 
-Authoritative for tenancy. If another doc disagrees, this file wins.
+Authoritative for tenant isolation. Modules, roles, super admin screens and support sessions are defined in `PLATFORM_MODULES.md`, which wins where the two differ.
 
 ## 1. Model (your idea, confirmed)
 - **Platform** = the whole system. Run by the owner through the `super_admin` role.
-- **Hospital** = a tenant. The super admin creates it. It immediately gets every module in the product.
+- **Hospital** = a tenant. The super admin creates it. It gets the modules the super admin switches on (see PLATFORM_MODULES.md).
 - **Flat, not nested.** There is no hospital inside a hospital and no branches in v1. One hospital = one tenant = one `hospital_id`.
 - **A user belongs to exactly one hospital.** The only exception is `super_admin`, who belongs to none.
 - Every hospital's data is private to that hospital, enforced by the database, not by app code alone.
@@ -24,7 +24,8 @@ hospitals(id, code, name, status, country, timezone, currency, created_at, creat
           status: active | suspended | archived          -- code is unique, lowercase, e.g. "alnoor"
 profiles(user_id PK → auth.users, hospital_id NULL for super_admin, username, full_name,
          is_active, must_change_password, created_by)    -- unique (hospital_id, username)
-roles, permissions, role_permissions                     -- global system roles, shared by all hospitals
+roles, role_permissions                                  -- per hospital, created by the hospital admin (PLATFORM_MODULES.md §9)
+permissions, modules, hospital_modules                   -- global catalog; hospital_modules = which modules each hospital has
 user_roles(user_id, role_id)
 hospital_settings(hospital_id PK, logo_path, tax_rate, number_formats, ...)
 hospital_counters(hospital_id, name, next_value)         -- MRN, invoice no, PO no per hospital
@@ -32,15 +33,15 @@ hospital_counters(hospital_id, name, next_value)         -- MRN, invoice no, PO 
 ```
 - Unique constraints are per hospital: `unique (hospital_id, mrn)`, never global.
 - Cross-table references use composite keys `(hospital_id, id)` so a row can never point at another hospital's row (blocks a class of bugs and IDOR attacks).
-- System roles are global and read-only in v1. Per-hospital custom roles are deferred.
+- Roles are per hospital. Role templates are global and read-only.
 
 ## 4. Two levels of admin (never confuse them)
 | | `super_admin` (platform) | `hospital_admin` (tenant) |
 |---|---|---|
 | Belongs to | No hospital | One hospital |
 | Can | Create, suspend, reactivate hospitals; create the first `hospital_admin`; reset a hospital admin's password; see the platform audit log | Create and manage users of **their** hospital, reset their passwords, settings, departments, dashboards, approvals |
-| Cannot | Read any patient, billing, HR, or stock data of any hospital | Touch other hospitals; see platform data |
-RLS makes this real: domain-table policies require `hospital_id = current_hospital_id()`. A super admin has no hospital id, so every domain query returns zero rows. Support access into a hospital is **not built**. If ever needed, it is a time-limited, hospital-approved, fully audited grant added by ADR.
+| Cannot | Read patient, billing, HR, or stock data of any hospital **except inside an audited support session** (PLATFORM_MODULES.md §7) | Touch other hospitals; see platform data |
+RLS makes this real: domain-table policies require `hospital_id = current_hospital_id()`. A super admin has no hospital id, so every domain query returns zero rows. Support access into a hospital happens only through a **support session**: mandatory reason, recent MFA, time-limited, audited, visible to the hospital admin (PLATFORM_MODULES.md §7).
 
 ## 5. Provisioning a hospital (super admin console)
 The only screens in the `(platform)` area: Hospitals list, Create hospital, Hospital detail (suspend/reactivate, reset admin password), Platform audit log.
@@ -96,4 +97,4 @@ Each hospital sets its own name, logo, country, timezone, **currency**, tax rate
 - If one hospital outgrows the shared database, move it to its own Supabase project (the dedicated option in §2). That is why `hospital_id` and settings are the only tenant concept in the code.
 
 ## 12. Not in scope
-Tenant billing/subscriptions, plans and quotas, per-tenant custom domains or subdomains, per-tenant feature toggles (every hospital gets every module), per-tenant custom roles, white-labeling beyond name and logo. Each can be added later by ADR.
+Tenant billing/subscriptions, plans and quotas, per-tenant custom domains or subdomains, white-labeling beyond name and logo. Each can be added later by ADR.

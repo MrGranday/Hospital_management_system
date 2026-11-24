@@ -429,6 +429,10 @@ interface AppState {
   bumpAppointmentsVersion: () => void;
   opdVersion: number;
   bumpOpdVersion: () => void;
+  labVersion: number;
+  bumpLabVersion: () => void;
+  billingVersion: number;
+  bumpBillingVersion: () => void;
   liveAppointments: LiveAppointment[];
   addAppointment: (a: Omit<LiveAppointment, "id" | "status">) => void;
   updateAppointmentStatus: (id: string, status: LiveAppointment["status"]) => void;
@@ -1015,6 +1019,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   bumpAppointmentsVersion: () => set((s) => ({ appointmentsVersion: s.appointmentsVersion + 1 })),
   opdVersion: 0,
   bumpOpdVersion: () => set((s) => ({ opdVersion: s.opdVersion + 1 })),
+  labVersion: 0,
+  bumpLabVersion: () => set((s) => ({ labVersion: s.labVersion + 1 })),
+  billingVersion: 0,
+  bumpBillingVersion: () => set((s) => ({ billingVersion: s.billingVersion + 1 })),
   liveAppointments: [],
   addAppointment: (a) => {
     aptSeq++;

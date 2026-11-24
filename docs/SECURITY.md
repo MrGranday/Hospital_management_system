@@ -32,7 +32,7 @@ This system holds PHI, financial records, HR records and inventory. Treat every 
 
 ## 3.1 Tenant isolation and platform admin
 - One hospital must never see another's data: `hospital_id` on every row, RLS on every table, tenant-prefixed storage paths, an automated cross-tenant test in CI (MULTI_TENANCY.md §8). A tenant leak is a **critical** incident.
-- `super_admin` belongs to no hospital and cannot read clinical, billing, HR, or stock data. Its power is limited to hospital lifecycle and password resets. Keep only two super admins, MFA mandatory, every action in the platform audit log.
+- `super_admin` belongs to no hospital and sees no clinical, billing, HR, or stock data except inside an audited, time-limited support session with a mandatory reason (PLATFORM_MODULES.md §7). Its other powers are hospital lifecycle, module switches, and hospital-admin password resets. Keep only two super admins, MFA mandatory, every action in the platform audit log.
 - Suspending a hospital blocks token issuance and revokes sessions.
 - `hospital_id` is never accepted from the client.
 
