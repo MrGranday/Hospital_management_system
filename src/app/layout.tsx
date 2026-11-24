@@ -55,6 +55,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
       </head>
       <body
+        suppressHydrationWarning
         className={`${inter.variable} font-sans antialiased bg-background text-foreground`}
       >
         {children}

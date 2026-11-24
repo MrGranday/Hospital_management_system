@@ -168,6 +168,7 @@ export async function createStaffMember(
       user_id: createdUserId,
       role_id: role.id,
       assigned_by: actorId,
+      hospital_id: hospitalId,
     });
     if (grantError) throw new Error(grantError.message);
 
@@ -222,13 +223,13 @@ export async function setStaffRole(
 
   const { error: assignError } = await admin
     .from("user_roles")
-    .insert({ user_id: userId, role_id: role.id, assigned_by: actorId });
+    .insert({ user_id: userId, role_id: role.id, assigned_by: actorId, hospital_id: hospitalId });
 
   if (assignError) {
     if (previousRoleIds.length > 0) {
       await admin
         .from("user_roles")
-        .insert(previousRoleIds.map((roleId) => ({ user_id: userId, role_id: roleId })));
+        .insert(previousRoleIds.map((roleId) => ({ user_id: userId, role_id: roleId, hospital_id: hospitalId })));
     }
     return { ok: false, error: "Could not update the role." };
   }

@@ -20,17 +20,18 @@ export function patientSexLabel(sex: string): string {
 function optionalText(max: number, message: string) {
   return z
     .union([z.string(), z.null(), z.undefined()])
+    .optional()
     .transform((value) => {
       const trimmed = typeof value === "string" ? value.trim() : "";
       return trimmed === "" ? null : trimmed;
     })
-    .refine((value) => value === null || value.length <= max, { message });
+    .refine((value) => value === null || value === undefined || value.length <= max, { message });
 }
 
 function optionalDateOfBirth() {
   return optionalText(10, "Use a valid date of birth.").refine(
     (value) => {
-      if (value === null) return true;
+      if (value === null || value === undefined) return true;
       if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
       const parsed = new Date(`${value}T00:00:00Z`);
       return (
@@ -45,6 +46,7 @@ function optionalDateOfBirth() {
 
 const optionalBloodGroup = z
   .union([z.enum(BLOOD_GROUPS), z.literal(""), z.null(), z.undefined()])
+  .optional()
   .transform((value) => (value === "" || value === undefined ? null : value));
 
 export const patientCreateSchema = z.object({

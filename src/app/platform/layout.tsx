@@ -31,6 +31,9 @@ export default async function PlatformLayout({
               MediCore Platform
             </Link>
             <nav className="flex items-center gap-4 text-sm">
+              <Link href="/platform" className="text-muted-foreground hover:text-foreground">
+                Dashboard
+              </Link>
               <Link href="/platform/hospitals" className="text-muted-foreground hover:text-foreground">
                 Hospitals
               </Link>
