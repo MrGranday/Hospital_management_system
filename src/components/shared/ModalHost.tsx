@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Search, Plus, Minus, Trash2, ShoppingCart, CreditCard, Banknote, Shield,
@@ -9,7 +9,9 @@ import {
   Syringe, Microscope, Smile, Send, Printer, DollarSign,
 } from "lucide-react";
 import { useAppStore } from "@/store/app-store";
-import { MEDICINES, PATIENTS, DOCTORS, DEPARTMENTS, type Patient } from "@/_legacy/mock-data/data";
+import { createPatientForUi } from "@/features/patients/ui-actions";
+import { createAppointmentForUi, listProvidersForUi } from "@/features/appointments/ui-actions";
+import { MEDICINES, DOCTORS, DEPARTMENTS, type Patient } from "@/_legacy/mock-data/data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -190,7 +192,8 @@ function SubmitFooter({ onClose, onSubmit, label, icon: Icon, disabled }: any) {
 // Combined patient list (live + static)
 function useAllPatients(): Patient[] {
   const livePatients = useAppStore((s) => s.livePatients);
-  return useMemo(() => [...livePatients, ...PATIENTS], [livePatients]);
+  const realPatients = useAppStore((s) => s.realPatients);
+  return useMemo(() => realPatients ?? livePatients, [realPatients, livePatients]);
 }
 
 // === POS Modal ===
@@ -1428,74 +1431,126 @@ function RestockModal({ onClose }: { onClose: () => void }) {
 }
 
 function NewPatientModal({ onClose }: { onClose: () => void }) {
-  const { closeModal, pushToast, logActivity, addPatient, setSelectedPatient, setPage } = useAppStore();
-  const [name, setName] = useState(""); const [age, setAge] = useState(""); const [gender, setGender] = useState<"M" | "F">("M"); const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState(""); const [address, setAddress] = useState(""); const [bloodType, setBloodType] = useState("");
-  const [insuranceProvider, setInsuranceProvider] = useState(""); const [insuranceCoverage, setInsuranceCoverage] = useState("0");
+  const { closeModal, pushToast, bumpPatientsVersion } = useAppStore();
+  const [name, setName] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [gender, setGender] = useState<"M" | "F">("M");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [address, setAddress] = useState("");
+  const [bloodType, setBloodType] = useState("");
+  const [pending, setPending] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!name.trim()) { pushToast({ title: "Name is required", variant: "warning" }); return; }
     if (!phone.trim()) { pushToast({ title: "Phone is required", variant: "warning" }); return; }
-    const newP = addPatient({
-      name: name.trim(),
-      age: parseInt(age) || 0,
-      gender,
+    setPending(true);
+    const result = await createPatientForUi({
+      fullName: name.trim(),
+      sex: gender === "M" ? "male" : "female",
+      dateOfBirth,
       phone: phone.trim(),
-      email: email.trim() || undefined,
-      address: address.trim() || undefined,
-      bloodType: bloodType || undefined,
-      insurance: insuranceProvider ? { provider: insuranceProvider, coverage: parseInt(insuranceCoverage) || 0 } : undefined,
-      lastVisit: undefined,
+      email: email.trim(),
+      address: address.trim(),
+      bloodGroup: bloodType,
+      notes: "",
     });
-    logActivity({ action: "Registered new patient", category: "patient", details: `${newP.name} (${newP.mrn}) — ${newP.age}y ${newP.gender}` });
-    pushToast({ title: "Patient Registered ✓", description: `${newP.name} — ${newP.mrn} added to registry`, variant: "success" });
-    setSelectedPatient(newP.id);
-    setPage("patients");
+    setPending(false);
+    if (!result.ok) {
+      pushToast({ title: "Could not register patient", description: result.error, variant: "danger" });
+      return;
+    }
+    bumpPatientsVersion();
+    pushToast({ title: "Patient Registered ✓", description: `${name.trim()} added to the registry`, variant: "success" });
     closeModal();
   };
 
   return (
     <ModalShell title="Register New Patient" subtitle="Add a new patient" icon={User} onClose={onClose}
-      footer={<SubmitFooter onClose={closeModal} onSubmit={handleSubmit} label="Register Patient" icon={CheckCircle2} />}>
+      footer={<SubmitFooter onClose={closeModal} onSubmit={handleSubmit} label={pending ? "Registering..." : "Register Patient"} icon={CheckCircle2} disabled={pending} />}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="col-span-2"><Label className="text-xs uppercase text-muted-foreground">Full Name *</Label><Input value={name} onChange={(e) => setName(e.target.value)} className="h-9 mt-1" autoFocus /></div>
-        <div><Label className="text-xs uppercase text-muted-foreground">Age</Label><Input type="number" value={age} onChange={(e) => setAge(e.target.value)} className="h-9 mt-1" /></div>
-        <div><Label className="text-xs uppercase text-muted-foreground">Gender</Label><select value={gender} onChange={(e) => setGender(e.target.value as any)} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="M">Male</option><option value="F">Female</option></select></div>
+        <div><Label className="text-xs uppercase text-muted-foreground">Date of Birth</Label><Input type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} className="h-9 mt-1" /></div>
+        <div><Label className="text-xs uppercase text-muted-foreground">Gender</Label><select value={gender} onChange={(e) => setGender(e.target.value as "M" | "F")} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="M">Male</option><option value="F">Female</option></select></div>
         <div><Label className="text-xs uppercase text-muted-foreground">Phone *</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} className="h-9 mt-1" /></div>
         <div><Label className="text-xs uppercase text-muted-foreground">Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-9 mt-1" /></div>
         <div><Label className="text-xs uppercase text-muted-foreground">Blood Type</Label><select value={bloodType} onChange={(e) => setBloodType(e.target.value)} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="">Unknown</option><option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option></select></div>
         <div><Label className="text-xs uppercase text-muted-foreground">Address</Label><Input value={address} onChange={(e) => setAddress(e.target.value)} className="h-9 mt-1" /></div>
-        <div><Label className="text-xs uppercase text-muted-foreground">Insurance Provider</Label><Input value={insuranceProvider} onChange={(e) => setInsuranceProvider(e.target.value)} placeholder="e.g., BlueShield" className="h-9 mt-1" /></div>
-        <div><Label className="text-xs uppercase text-muted-foreground">Coverage (%)</Label><Input type="number" value={insuranceCoverage} onChange={(e) => setInsuranceCoverage(e.target.value)} className="h-9 mt-1" /></div>
       </div>
     </ModalShell>
   );
 }
 
 function NewAppointmentModal({ onClose }: { onClose: () => void }) {
-  const { closeModal, pushToast, logActivity, addAppointment, modalContext } = useAppStore();
+  const { closeModal, pushToast, modalContext, bumpAppointmentsVersion } = useAppStore();
   const allPatients = useAllPatients();
   const [patient, setPatient] = useState<string>(modalContext?.patientId ?? "");
-  const [doctor, setDoctor] = useState(""); const [date, setDate] = useState(new Date().toISOString().slice(0, 10)); const [time, setTime] = useState("09:00"); const [reason, setReason] = useState(""); const [type, setType] = useState<"new" | "follow-up" | "emergency">("new");
+  const [providers, setProviders] = useState<{ id: string; name: string; specialty: string }[]>([]);
+  const [doctor, setDoctor] = useState("");
+  const today = new Date();
+  const [date, setDate] = useState(
+    `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`,
+  );
+  const [time, setTime] = useState("09:00");
+  const [reason, setReason] = useState("");
+  const [type, setType] = useState<"new" | "follow-up" | "emergency">("new");
+  const [pending, setPending] = useState(false);
 
-  const handleSubmit = () => {
+  useEffect(() => {
+    let active = true;
+    listProvidersForUi()
+      .then((result) => {
+        if (!active) return;
+        if (result.ok) {
+          setProviders(result.providers);
+        } else {
+          pushToast({ title: "Could not load providers", description: result.error, variant: "danger" });
+        }
+      })
+      .catch(() => {
+        if (active) {
+          pushToast({ title: "Could not load providers", description: "Check your connection and try again.", variant: "danger" });
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [pushToast]);
+
+  const handleSubmit = async () => {
     const p = allPatients.find((x) => x.id === patient);
     if (!p) { pushToast({ title: "Select patient", variant: "warning" }); return; }
+    if (!doctor) { pushToast({ title: "Select a provider", variant: "warning" }); return; }
     if (!date || !time) { pushToast({ title: "Date and time are required", variant: "warning" }); return; }
-    const doc = DOCTORS.find((d) => d.id === doctor) ?? DOCTORS[0]!;
-    addAppointment({ patientId: p.id, patientName: p.name, doctorId: doc.id, doctorName: doc.name, department: doc.specialty, time, date, duration: 30, reason: reason || "General consultation", type });
-    logActivity({ action: "Booked appointment", category: "patient", details: `${p.name} with ${doc.name} on ${date} at ${time}` });
-    pushToast({ title: "Appointment Booked ✓", description: `${p.name} — ${doc.name} on ${date} ${time}`, variant: "success" });
+    const startsAt = new Date(`${date}T${time}:00`);
+    const endsAt = new Date(startsAt.getTime() + 30 * 60_000);
+    setPending(true);
+    const result = await createAppointmentForUi({
+      patientId: p.id,
+      providerId: doctor,
+      startsAt: startsAt.toISOString(),
+      endsAt: endsAt.toISOString(),
+      type,
+      reason: reason.trim() || "General consultation",
+      notes: "",
+    });
+    setPending(false);
+    if (!result.ok) {
+      pushToast({ title: "Could not book appointment", description: result.error, variant: "danger" });
+      return;
+    }
+    bumpAppointmentsVersion();
+    pushToast({ title: "Appointment Booked ✓", description: `${p.name} on ${date} at ${time}`, variant: "success" });
     closeModal();
   };
 
   return (
     <ModalShell title="Book Appointment" subtitle="Schedule a new appointment" icon={Calendar} onClose={onClose}
-      footer={<SubmitFooter onClose={closeModal} onSubmit={handleSubmit} label="Book Appointment" icon={Calendar} />}>
+      footer={<SubmitFooter onClose={closeModal} onSubmit={handleSubmit} label={pending ? "Booking..." : "Book Appointment"} icon={Calendar} disabled={pending} />}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="col-span-2"><Label className="text-xs uppercase text-muted-foreground">Patient</Label><select value={patient} onChange={(e) => setPatient(e.target.value)} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="">Select...</option>{allPatients.map((p) => <option key={p.id} value={p.id}>{p.name} ({p.mrn})</option>)}</select></div>
-        <div><Label className="text-xs uppercase text-muted-foreground">Doctor</Label><select value={doctor} onChange={(e) => setDoctor(e.target.value)} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="">Select...</option>{DOCTORS.map((d) => <option key={d.id} value={d.id}>{d.name} — {d.specialty}</option>)}</select></div>
-        <div><Label className="text-xs uppercase text-muted-foreground">Type</Label><select value={type} onChange={(e) => setType(e.target.value as any)} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="new">New Visit</option><option value="follow-up">Follow-up</option><option value="emergency">Emergency</option></select></div>
+        <div><Label className="text-xs uppercase text-muted-foreground">Doctor</Label><select value={doctor} onChange={(e) => setDoctor(e.target.value)} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="">Select...</option>{providers.map((d) => <option key={d.id} value={d.id}>{d.name} — {d.specialty}</option>)}</select></div>
+        <div><Label className="text-xs uppercase text-muted-foreground">Type</Label><select value={type} onChange={(e) => setType(e.target.value as "new" | "follow-up" | "emergency")} className="w-full h-9 mt-1 px-3 rounded-lg border border-border bg-card text-sm"><option value="new">New Visit</option><option value="follow-up">Follow-up</option><option value="emergency">Emergency</option></select></div>
         <div><Label className="text-xs uppercase text-muted-foreground">Date</Label><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-9 mt-1" /></div>
         <div><Label className="text-xs uppercase text-muted-foreground">Time</Label><Input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="h-9 mt-1" /></div>
         <div className="col-span-2"><Label className="text-xs uppercase text-muted-foreground">Reason</Label><Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g., Routine check-up" className="h-9 mt-1" /></div>

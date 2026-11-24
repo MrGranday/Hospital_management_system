@@ -164,7 +164,7 @@ export default async function LabOrdersPage({
                         {o.order_no}
                       </td>
                       <td className="px-4 py-3">
-                        <Link href={`/lab/orders/${o.id}`} className="font-medium hover:underline">
+                        <Link href={`/lab/${o.id}`} className="font-medium hover:underline">
                           {patient?.full_name ?? "Unknown patient"}
                         </Link>
                       </td>
@@ -195,14 +195,14 @@ export default async function LabOrdersPage({
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Link
-                            href={`/lab/orders/${o.id}`}
+                            href={`/lab/${o.id}`}
                             className="text-xs font-medium hover:underline"
                           >
                             View
                           </Link>
                           {canUpdate && o.status !== "completed" ? (
                             <Link
-                              href={`/lab/orders/${o.id}/edit`}
+                              href={`/lab/${o.id}/edit`}
                               className="text-xs text-brand hover:underline"
                             >
                               Edit

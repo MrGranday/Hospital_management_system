@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   CalendarDays,
@@ -15,9 +16,10 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { APPOINTMENTS, DOCTORS, type Appointment } from "@/_legacy/mock-data/data";
+import type { Appointment } from "@/_legacy/mock-data/data";
 import { ColorAvatar, StatusPill } from "@/components/shared/ui-bits";
 import { useAppStore } from "@/store/app-store";
+import { listAppointmentsForUi, listProvidersForUi } from "@/features/appointments/ui-actions";
 
 const STATUS_INFO: Record<Appointment["status"], { status: "success" | "warning" | "danger" | "info" | "neutral"; label: string }> = {
   scheduled: { status: "neutral", label: "Scheduled" },
@@ -36,18 +38,54 @@ const TYPE_INFO: Record<Appointment["type"], { color: string; label: string }> =
 
 const HOURS = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"];
 
+type Provider = { id: string; name: string; specialty: string; avatarColor: string };
+
 export default function Appointments() {
-  const { openModal, liveAppointments, updateAppointmentStatus, pushToast } = useAppStore();
+  const { openModal, pushToast, appointmentsVersion } = useAppStore();
+  const router = useRouter();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [view, setView] = useState<"day" | "week">("day");
+  const [realAppointments, setRealAppointments] = useState<Appointment[] | null>(null);
+  const [providers, setProviders] = useState<Provider[]>([]);
 
-  const allAppointments = useMemo(() => [...liveAppointments, ...APPOINTMENTS], [liveAppointments]);
+  useEffect(() => {
+    let active = true;
+    Promise.all([listAppointmentsForUi(), listProvidersForUi()])
+      .then(([appointmentsResult, providersResult]) => {
+        if (!active) return;
+        if (appointmentsResult.ok) {
+          setRealAppointments(appointmentsResult.appointments);
+        } else {
+          pushToast({
+            title: "Could not load appointments",
+            description: appointmentsResult.error,
+            variant: "danger",
+          });
+        }
+        if (providersResult.ok) {
+          setProviders(providersResult.providers);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          pushToast({
+            title: "Could not load appointments",
+            description: "Check your connection and try again.",
+            variant: "danger",
+          });
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [pushToast, appointmentsVersion]);
+
+  const allAppointments = useMemo(() => realAppointments ?? [], [realAppointments]);
 
   const dayAppointments = useMemo(() => {
-    // "today" in static data means the current selected date — also include live appointments for the selected date
-    const sel = selectedDate.toISOString().slice(0, 10);
+    const sel = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`;
     return allAppointments
-      .filter((a) => a.date === "today" || a.date === sel)
+      .filter((a) => a.date === sel)
       .sort((a, b) => a.time.localeCompare(b.time));
   }, [allAppointments, selectedDate]);
 
@@ -145,14 +183,7 @@ export default function Appointments() {
                             height: Math.max(60, height - 4),
                             borderLeftColor: typeInfo.color,
                           }}
-                          onClick={() => {
-                            const next: Record<string, Appointment["status"]> = {
-                              scheduled: "checked-in", "checked-in": "in-progress", "in-progress": "completed", completed: "completed",
-                            };
-                            const ns = next[apt.status] ?? apt.status;
-                            if (apt.id.startsWith("apt-")) { updateAppointmentStatus(apt.id, ns); pushToast({ title: `Marked ${ns}`, description: apt.patientName, variant: "success" }); }
-                            else pushToast({ title: `Status: ${ns}`, description: `${apt.patientName} (demo data, cannot mutate)`, variant: "info" });
-                          }}
+                          onClick={() => router.push(`/appointments/${apt.id}`)}
                         >
                           <div className="p-2.5">
                             <div className="flex items-start justify-between gap-2">
@@ -187,19 +218,27 @@ export default function Appointments() {
           <Card className="border-border/60 shadow-soft rounded-xl p-4">
             <h3 className="text-sm font-semibold mb-3">Doctors on Schedule</h3>
             <div className="space-y-2">
-              {DOCTORS.slice(0, 5).map((doc) => (
-                <div key={doc.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/30 transition-colors">
-                  <ColorAvatar name={doc.name} color={doc.avatarColor} size="sm" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate">{doc.name}</p>
-                    <p className="text-[10px] text-muted-foreground">{doc.specialty}</p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <CircleDot className={`h-3 w-3 ${doc.status === "available" ? "text-emerald-500" : doc.status === "busy" ? "text-amber-500" : "text-muted-foreground"}`} />
-                    <span className="text-[10px] text-muted-foreground">{doc.patientsToday}</span>
-                  </div>
-                </div>
-              ))}
+              {providers.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No providers available.</p>
+              ) : (
+                providers.map((provider) => {
+                  const todays = dayAppointments.filter((a) => a.doctorId === provider.id);
+                  const busy = todays.some((a) => a.status === "in-progress");
+                  return (
+                    <div key={provider.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/30 transition-colors">
+                      <ColorAvatar name={provider.name} color={provider.avatarColor} size="sm" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{provider.name}</p>
+                        <p className="text-[10px] text-muted-foreground">{provider.specialty}</p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <CircleDot className={`h-3 w-3 ${busy ? "text-amber-500" : "text-emerald-500"}`} />
+                        <span className="text-[10px] text-muted-foreground">{todays.length}</span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </Card>
 

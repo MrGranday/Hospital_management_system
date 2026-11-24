@@ -77,8 +77,8 @@ export async function createLabOrderAction(
 
   if (error) return { error: "Could not create the lab order. Try again." };
 
-  revalidatePath("/lab/orders");
-  redirect("/lab/orders");
+  revalidatePath("/lab");
+  redirect("/lab");
 }
 
 export async function updateLabOrderAction(
@@ -131,8 +131,8 @@ export async function updateLabOrderAction(
     return { error: "This lab order was changed by someone else. Reload and try again." };
   }
 
-  revalidatePath("/lab/orders");
-  redirect(`/lab/orders/${data.id}`);
+  revalidatePath("/lab");
+  redirect(`/lab/${data.id}`);
 }
 
 // --- Lab order items ---
@@ -164,8 +164,8 @@ export async function createLabOrderItemAction(
 
   if (error) return { error: "Could not add the lab test. Try again." };
 
-  revalidatePath(`/lab/orders/${parsed.data.labOrderId}`);
-  redirect(`/lab/orders/${parsed.data.labOrderId}`);
+  revalidatePath(`/lab/${parsed.data.labOrderId}`);
+  redirect(`/lab/${parsed.data.labOrderId}`);
 }
 
 // --- Lab results ---
@@ -203,8 +203,8 @@ export async function createLabResultAction(
 
   if (error) return { error: "Could not record the result. Try again." };
 
-  revalidatePath(`/lab/orders`);
-  redirect(`/lab/orders`);
+  revalidatePath(`/lab`);
+  redirect(`/lab`);
 }
 
 export async function verifyLabResultAction(
@@ -227,6 +227,6 @@ export async function verifyLabResultAction(
 
   if (error) return { error: "Could not verify the result. Try again." };
 
-  revalidatePath("/lab/orders");
+  revalidatePath("/lab");
   return undefined;
 }

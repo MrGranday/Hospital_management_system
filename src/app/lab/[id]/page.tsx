@@ -104,7 +104,7 @@ export default async function LabOrderDetailPage({
         <div className="flex flex-wrap items-center gap-2">
           {canUpdate ? (
             <Link
-              href={`/lab/orders/${order.id}/edit`}
+              href={`/lab/${order.id}/edit`}
               className="inline-flex h-8 items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium hover:bg-accent"
             >
               Edit order

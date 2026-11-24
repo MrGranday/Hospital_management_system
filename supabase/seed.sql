@@ -1,0 +1,4 @@
+-- Development/staging seed only. Never run against production.
+-- Auth users and hospitals are provisioned through the platform console so that
+-- passwords, MFA enrolment and audit trails stay in the real code paths.
+-- Add idempotent demo rows here when a module needs fixtures for local testing.

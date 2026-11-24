@@ -26,6 +26,7 @@ import ActivityLog from "@/features/audit-log/components/ActivityLog";
 import Roles from "@/features/users-roles/components/Roles";
 import Suppliers from "@/features/suppliers/components/Suppliers";
 import { useAppStore, type PageKey } from "@/store/app-store";
+import { useRealPatients } from "@/features/patients/use-real-patients";
 import type { Role } from "@/_legacy/mock-data/data";
 
 const LEGACY_ROLE: Record<string, Role> = {
@@ -51,9 +52,19 @@ export type HomeSession = {
   role: string;
 };
 
-export default function HomeClient({ session }: { session: HomeSession }) {
+export default function HomeClient({
+  session,
+  initialPage,
+  canReadPatients,
+}: {
+  session: HomeSession;
+  initialPage: PageKey;
+  canReadPatients: boolean;
+}) {
   const setSessionUser = useAppStore((state) => state.setSessionUser);
-  const currentPage = useAppStore((state) => state.currentPage);
+  const storePage = useAppStore((state) => state.currentPage);
+  const pageInitialized = useAppStore((state) => state.pageInitialized);
+  useRealPatients(canReadPatients);
 
   useEffect(() => {
     setSessionUser({
@@ -63,6 +74,8 @@ export default function HomeClient({ session }: { session: HomeSession }) {
       email: session.username,
     });
   }, [session, setSessionUser]);
+
+  const currentPage = pageInitialized ? storePage : initialPage;
 
   return (
     <AppShell>
