@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -44,15 +45,20 @@ const STATUS_INFO: Record<Patient["status"], { status: "success" | "warning" | "
 };
 
 export default function Patients() {
-  const { setSelectedPatient, openModal, pushToast, logActivity, livePatients } = useAppStore();
+  const { pushToast, logActivity, livePatients, realPatients, openModal } = useAppStore();
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [genderFilter, setGenderFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
+  const loadingPatients = realPatients === null;
   const pageSize = 8;
 
-  const allPatients = useMemo(() => [...livePatients, ...PATIENTS], [livePatients]);
+  const allPatients = useMemo(
+    () => realPatients ?? livePatients,
+    [realPatients, livePatients],
+  );
 
   const filtered = useMemo(() => {
     return allPatients.filter((p) => {
@@ -70,6 +76,13 @@ export default function Patients() {
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  const pageWindow = useMemo(() => {
+    const windowSize = 5;
+    const end = Math.min(totalPages, Math.max(1, page - 2) + windowSize - 1);
+    const start = Math.max(1, end - windowSize + 1);
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  }, [page, totalPages]);
 
   const stats = useMemo(() => {
     return {
@@ -201,6 +214,13 @@ export default function Patients() {
               </tr>
             </thead>
             <tbody>
+              {loadingPatients && realPatients === null && (
+                <tr>
+                  <td colSpan={8} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                    Loading patients…
+                  </td>
+                </tr>
+              )}
               <AnimatePresence initial={false}>
                 {paginated.map((p, i) => (
                   <motion.tr
@@ -210,7 +230,7 @@ export default function Patients() {
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2, delay: i * 0.03 }}
                     className="border-b border-border/50 hover:bg-accent/30 transition-colors group cursor-pointer"
-                    onClick={() => setSelectedPatient(p.id)}
+                    onClick={() => router.push(`/patients/${p.id}`)}
                   >
                     <Td>
                       <div className="flex items-center gap-3">
@@ -259,7 +279,7 @@ export default function Patients() {
                         className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedPatient(p.id);
+                          router.push(`/patients/${p.id}`);
                         }}
                       >
                         <MoreHorizontal className="h-4 w-4" />
@@ -299,15 +319,15 @@ export default function Patients() {
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            {Array.from({ length: totalPages }).map((_, i) => (
+            {pageWindow.map((pageNumber) => (
               <Button
-                key={i}
-                variant={page === i + 1 ? "default" : "outline"}
+                key={pageNumber}
+                variant={page === pageNumber ? "default" : "outline"}
                 size="sm"
                 className="h-8 w-8 p-0"
-                onClick={() => setPage(i + 1)}
+                onClick={() => setPage(pageNumber)}
               >
-                {i + 1}
+                {pageNumber}
               </Button>
             ))}
             <Button

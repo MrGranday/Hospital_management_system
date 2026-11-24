@@ -47,7 +47,7 @@ export default async function EditLabOrderPage({
     <div className="max-w-3xl space-y-4">
       <div>
         <Link
-          href={`/lab/orders/${order.id}`}
+          href={`/lab/${order.id}`}
           className="text-xs text-muted-foreground hover:underline"
         >
           ← Back to order

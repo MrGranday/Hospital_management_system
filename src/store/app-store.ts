@@ -344,6 +344,7 @@ interface AppState {
   logout: () => void;
   failedLoginAttempts: number;
   currentPage: PageKey;
+  pageInitialized: boolean;
   pageParam?: string;
   setPage: (page: PageKey, param?: string) => void;
   sidebarCollapsed: boolean;
@@ -420,6 +421,12 @@ interface AppState {
   // ===== Patients / Appointments / Beds / Staff / Notes / Expenses =====
   livePatients: Patient[];
   addPatient: (p: Omit<Patient, "id" | "mrn" | "registeredOn" | "status" | "allergies" | "chronicConditions" | "balance" | "avatarColor"> & Partial<Patient>) => Patient;
+  patientsVersion: number;
+  bumpPatientsVersion: () => void;
+  realPatients: Patient[] | null;
+  setRealPatients: (patients: Patient[]) => void;
+  appointmentsVersion: number;
+  bumpAppointmentsVersion: () => void;
   liveAppointments: LiveAppointment[];
   addAppointment: (a: Omit<LiveAppointment, "id" | "status">) => void;
   updateAppointmentStatus: (id: string, status: LiveAppointment["status"]) => void;
@@ -680,7 +687,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   user: null,
   failedLoginAttempts: 0,
   setSessionUser: (sessionUser) => {
-    set({ authenticated: true, user: sessionUser, currentPage: "dashboard", failedLoginAttempts: 0 });
+    set({ authenticated: true, user: sessionUser, failedLoginAttempts: 0 });
     get().logActivity({
       action: "Signed in",
       category: "auth",
@@ -700,11 +707,12 @@ export const useAppStore = create<AppState>((set, get) => ({
         success: true,
       });
     }
-    set({ authenticated: false, user: null, currentPage: "dashboard" });
+    set({ authenticated: false, user: null, currentPage: "dashboard", pageInitialized: false });
   },
   currentPage: "dashboard",
+  pageInitialized: false,
   pageParam: undefined,
-  setPage: (page, param) => set({ currentPage: page, pageParam: param }),
+  setPage: (page, param) => set({ currentPage: page, pageInitialized: true, pageParam: param }),
   sidebarCollapsed: false,
   toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
   setSidebarCollapsed: (v) => set({ sidebarCollapsed: v }),
@@ -997,6 +1005,12 @@ export const useAppStore = create<AppState>((set, get) => ({
     get().logActivity({ action: "Registered new patient", category: "patient", module: "patients", targetRecordId: newP.id, targetRecordType: "Patient", details: `${newP.name} (${newP.mrn})`, success: true });
     return newP;
   },
+  patientsVersion: 0,
+  bumpPatientsVersion: () => set((s) => ({ patientsVersion: s.patientsVersion + 1 })),
+  realPatients: null,
+  setRealPatients: (patients) => set({ realPatients: patients }),
+  appointmentsVersion: 0,
+  bumpAppointmentsVersion: () => set((s) => ({ appointmentsVersion: s.appointmentsVersion + 1 })),
   liveAppointments: [],
   addAppointment: (a) => {
     aptSeq++;

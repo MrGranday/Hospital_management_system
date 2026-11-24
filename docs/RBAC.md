@@ -56,6 +56,14 @@ Notes:
 
 The matrix is documentation. The source of truth is `role_permissions`. A test asserts the seeded permissions match this table.
 
+### 5.1 Catalog additions (2026-11-23)
+RLS policies and server actions already enforced `purchasing:*`, `pharmacy:*` and `lab:verify`, but those keys were never seeded, so the checks always denied. `20261123100000_permission_catalog_fix.sql` adds them:
+- `purchasing:read` → hospital_admin, inventory_manager, accountant, auditor
+- `purchasing:create`, `purchasing:update` → inventory_manager
+- `pharmacy:read` → hospital_admin, pharmacist, auditor
+- `pharmacy:create`, `pharmacy:update` → pharmacist
+- `lab:verify` → lab_technician
+
 ## 5. Rules for adding or changing a permission
 1. Add the string to `permissions` via a migration. Never invent a permission only in TypeScript.
 2. Add it to the relevant roles via the same migration.

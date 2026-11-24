@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -44,6 +44,7 @@ import {
   Package,
 } from "lucide-react";
 import { useAppStore, type PageKey } from "@/store/app-store";
+import { pageFromPath, pagePath } from "@/lib/app-routes";
 import { NOTIFICATIONS, ROLE_LABELS, type Role } from "@/_legacy/mock-data/data";
 import { ModalHost } from "./ModalHost";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -114,8 +115,36 @@ const NAV_GROUPS: NavGroup[] = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { mobileSidebarOpen, setMobileSidebar, currentPage } = useAppStore();
+  const urlSynced = useRef(false);
   // Initialize theme on mount
   useTheme();
+
+  useEffect(() => {
+    const page = pageFromPath(window.location.pathname);
+    if (page && page !== useAppStore.getState().currentPage) {
+      useAppStore.getState().setPage(page);
+    }
+    urlSynced.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!urlSynced.current) return;
+    const page = useAppStore.getState().currentPage;
+    const target = pagePath(page);
+    if (window.location.pathname !== target) {
+      window.history.pushState({ page }, "", target);
+    }
+  }, [currentPage]);
+
+  useEffect(() => {
+    const onPopState = () => {
+      const page = pageFromPath(window.location.pathname);
+      if (page) useAppStore.getState().setPage(page);
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
   return (
     <div className="h-screen overflow-hidden flex bg-background">
       {/* Desktop Sidebar */}

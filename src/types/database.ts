@@ -1316,6 +1316,11 @@ isOneToOne: false
               "created_at": string,"date_of_birth": string,"full_name": string,"id": string,"mrn": string,"phone": string,"sex": string,"total_count": number
             }[]
                            },
+"list_providers":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "full_name": string,"user_id": string
+            }[]
+                           },
 "list_platform_audit_events":
 { Args: { "p_limit"?: number }; Returns: {
               "action": string,"actor_role": string,"hospital_id": string,"id": number,"occurred_at": string,"record_id": string,"table_name": string
