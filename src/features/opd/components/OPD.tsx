@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Stethoscope,
@@ -14,46 +15,116 @@ import {
   Weight,
   Ruler,
   ChevronRight,
-  ArrowRight,
   User,
-  Phone,
   Pill,
   FlaskConical,
   FileText,
-  X,
   Plus,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { OPD_VISITS, type OpdVisit } from "@/_legacy/mock-data/data";
 import { ColorAvatar, StatusPill, KpiCard } from "@/components/shared/ui-bits";
 import { useAppStore } from "@/store/app-store";
+import type { OpdVisitStatus, OpdVisitUi } from "@/features/visits/opd-types";
+import { listOpdQueueForUi, updateVisitStatusForUi } from "@/features/visits/ui-actions";
 import { cn } from "@/lib/utils";
 
-const TABS = [
-  { key: "queue", label: "Today's Queue", count: OPD_VISITS.length },
-  { key: "waiting", label: "Waiting", count: OPD_VISITS.filter((v) => v.status === "waiting").length },
-  { key: "in-progress", label: "In Consultation", count: OPD_VISITS.filter((v) => v.status === "in_consultation").length },
-  { key: "completed", label: "Completed", count: OPD_VISITS.filter((v) => v.status === "completed").length },
-] as const;
+type TabKey = "queue" | "waiting" | "vitals" | "consultation" | "completed";
 
-type TabKey = typeof TABS[number]["key"];
+const TAB_LABELS: { key: TabKey; label: string }[] = [
+  { key: "queue", label: "Today's Queue" },
+  { key: "waiting", label: "Waiting" },
+  { key: "vitals", label: "Vitals" },
+  { key: "consultation", label: "In Consultation" },
+  { key: "completed", label: "Completed" },
+];
 
 export default function OPD() {
-  const { setPage, pageParam, openModal, pushToast, logActivity } = useAppStore();
+  const { pageParam, openModal, pushToast, logActivity, opdVersion, bumpOpdVersion } =
+    useAppStore();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabKey>("queue");
   const [selectedVisit, setSelectedVisit] = useState<string | null>(pageParam || null);
+  const [visits, setVisits] = useState<OpdVisitUi[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [pendingId, setPendingId] = useState<string | null>(null);
 
-  const filtered = OPD_VISITS.filter((v) => {
+  useEffect(() => {
+    let active = true;
+
+    listOpdQueueForUi()
+      .then((result) => {
+        if (!active) return;
+        if (result.ok) {
+          setVisits(result.visits);
+        } else {
+          setVisits([]);
+          setError(result.error);
+        }
+      })
+      .catch(() => {
+        if (!active) return;
+        setVisits([]);
+        setError("Could not load the OPD queue. Try again.");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [opdVersion]);
+
+  const loading = visits === null;
+  const allVisits = visits ?? [];
+
+  const tabs = TAB_LABELS.map((tab) => ({
+    ...tab,
+    count:
+      tab.key === "queue"
+        ? allVisits.length
+        : allVisits.filter((visit) => visit.status === tab.key).length,
+  }));
+
+  const filtered = allVisits.filter((visit) => {
     if (activeTab === "queue") return true;
-    if (activeTab === "waiting") return v.status === "waiting";
-    if (activeTab === "in-progress") return v.status === "in_consultation";
-    if (activeTab === "completed") return v.status === "completed";
-    return true;
+    return visit.status === activeTab;
   });
 
-  const visit = OPD_VISITS.find((v) => v.id === selectedVisit);
+  const visit = allVisits.find((v) => v.id === selectedVisit);
+
+  const handleAdvance = async (target: OpdVisitUi, next: OpdVisitStatus) => {
+    if (pendingId) return;
+    setPendingId(target.id);
+
+    const result = await updateVisitStatusForUi({
+      visitId: target.id,
+      version: target.version,
+      status: next,
+    });
+
+    setPendingId(null);
+
+    if (!result.ok) {
+      pushToast({
+        title: "Could not update the visit",
+        description: result.error,
+        variant: "danger",
+      });
+      return;
+    }
+
+    pushToast({
+      title: next === "completed" ? "Visit completed" : "Consultation started",
+      description: target.patientName,
+      variant: "success",
+    });
+    logActivity({
+      action: next === "completed" ? "Completed consultation" : "Started consultation",
+      category: "opd",
+      details: `${target.patientName} (${target.mrn}) with ${target.doctorName}`,
+    });
+    bumpOpdVersion();
+  };
 
   return (
     <div className="space-y-6">
@@ -74,10 +145,10 @@ export default function OPD() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <KpiCard label="In Queue" value={OPD_VISITS.filter((v) => v.status === "waiting").length} icon={Clock} accent="amber" delay={0} />
-        <KpiCard label="In Consultation" value={OPD_VISITS.filter((v) => v.status === "in_consultation").length} icon={Stethoscope} accent="brand" delay={0.05} />
-        <KpiCard label="Vitals Done" value={OPD_VISITS.filter((v) => v.status === "vitals_done").length} icon={Activity} accent="blue" delay={0.1} />
-        <KpiCard label="Completed Today" value={OPD_VISITS.filter((v) => v.status === "completed").length} icon={CheckCircle2} accent="emerald" delay={0.15} />
+        <KpiCard label="In Queue" value={allVisits.filter((v) => v.status === "waiting").length} icon={Clock} accent="amber" delay={0} />
+        <KpiCard label="In Consultation" value={allVisits.filter((v) => v.status === "consultation").length} icon={Stethoscope} accent="brand" delay={0.05} />
+        <KpiCard label="Vitals" value={allVisits.filter((v) => v.status === "vitals").length} icon={Activity} accent="blue" delay={0.1} />
+        <KpiCard label="Completed Today" value={allVisits.filter((v) => v.status === "completed").length} icon={CheckCircle2} accent="emerald" delay={0.15} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -85,7 +156,7 @@ export default function OPD() {
         <div className="lg:col-span-2 space-y-3">
           {/* Tabs */}
           <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-lg w-fit overflow-x-auto">
-            {TABS.map((tab) => (
+            {tabs.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
@@ -109,6 +180,29 @@ export default function OPD() {
 
           {/* Visit cards */}
           <div className="space-y-2">
+            {loading && (
+              <Card className="border-border/60 shadow-soft rounded-xl p-8 text-center text-sm text-muted-foreground">
+                Loading today&apos;s OPD queue…
+              </Card>
+            )}
+
+            {!loading && error && (
+              <Card className="border-border/60 shadow-soft rounded-xl p-8 text-center">
+                <AlertTriangle className="h-7 w-7 mx-auto text-amber-500 mb-2" />
+                <p className="text-sm font-medium text-foreground">{error}</p>
+                <Button variant="outline" size="sm" className="mt-3" onClick={() => { setError(null); setVisits(null); bumpOpdVersion(); }}>
+                  Retry
+                </Button>
+              </Card>
+            )}
+
+            {!loading && !error && filtered.length === 0 && (
+              <Card className="border-border/60 shadow-soft rounded-xl p-8 text-center text-sm text-muted-foreground">
+                <Stethoscope className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                No visits in this queue.
+              </Card>
+            )}
+
             <AnimatePresence mode="popLayout">
               {filtered.map((visit, i) => (
                 <motion.div
@@ -133,10 +227,15 @@ export default function OPD() {
         {/* Detail panel - 1 col */}
         <div className="lg:sticky lg:top-0 h-fit">
           {visit ? (
-            <VisitDetail visit={visit} onStartConsultation={() => {
-              pushToast({ title: "Consultation started", description: visit.patientName, variant: "success" });
-              logActivity({ action: "Started consultation", category: "opd", details: `${visit.patientName} (${visit.mrn}) with ${visit.doctorName}` });
-            }} onRecord={() => openModal("newNote", { patientId: visit.patientId })} onRx={() => openModal("newPrescription", { patientId: visit.patientId })} onLabs={() => openModal("newLabOrder", { patientId: visit.patientId })} onNotes={() => openModal("newNote", { patientId: visit.patientId })} />
+            <VisitDetail
+              visit={visit}
+              pending={pendingId === visit.id}
+              onAdvance={(next) => handleAdvance(visit, next)}
+              onRecord={() => router.push(`/visits/${visit.id}`)}
+              onRx={() => openModal("newPrescription", { patientId: visit.patientId })}
+              onLabs={() => openModal("newLabOrder", { patientId: visit.patientId })}
+              onNotes={() => openModal("newNote", { patientId: visit.patientId })}
+            />
           ) : (
             <Card className="border-border/60 shadow-soft rounded-xl p-8 text-center">
               <div className="w-14 h-14 rounded-full bg-accent mx-auto flex items-center justify-center mb-3">
@@ -152,9 +251,14 @@ export default function OPD() {
   );
 }
 
-function VisitCard({ visit, selected, onClick }: { visit: OpdVisit; selected: boolean; onClick: () => void }) {
+function VisitCard({ visit, selected, onClick }: { visit: OpdVisitUi; selected: boolean; onClick: () => void }) {
   const statusInfo = getVisitStatusInfo(visit.status);
-  const priorityInfo = getPriorityInfo(visit.priority);
+  const demographic =
+    visit.age !== null
+      ? `${visit.age}${visit.gender === "?" ? "" : visit.gender}`
+      : visit.gender === "?"
+        ? ""
+        : visit.gender;
 
   return (
     <button
@@ -173,12 +277,12 @@ function VisitCard({ visit, selected, onClick }: { visit: OpdVisit; selected: bo
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <p className="font-semibold text-foreground truncate">{visit.patientName}</p>
-                <span className="text-xs text-muted-foreground">{visit.age}{visit.gender === "M" ? "M" : "F"}</span>
+                {demographic && <span className="text-xs text-muted-foreground">{demographic}</span>}
               </div>
               <p className="text-xs text-muted-foreground font-mono mt-0.5">{visit.mrn}</p>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
-              <StatusPill status={priorityInfo.status}>{priorityInfo.label}</StatusPill>
+              <StatusPill status={statusInfo.status}>{statusInfo.label}</StatusPill>
             </div>
           </div>
           <p className="text-sm text-muted-foreground mt-2 line-clamp-1">{visit.reason}</p>
@@ -191,7 +295,6 @@ function VisitCard({ visit, selected, onClick }: { visit: OpdVisit; selected: bo
               <User className="h-3 w-3" />
               {visit.doctorName}
             </span>
-            <span className="text-brand-600 font-medium">{visit.department}</span>
           </div>
         </div>
         <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-brand-500 transition-colors" />
@@ -200,9 +303,29 @@ function VisitCard({ visit, selected, onClick }: { visit: OpdVisit; selected: bo
   );
 }
 
-function VisitDetail({ visit, onStartConsultation, onRecord, onRx, onLabs, onNotes }: { visit: OpdVisit; onStartConsultation: () => void; onRecord: () => void; onRx: () => void; onLabs: () => void; onNotes: () => void }) {
+function VisitDetail({
+  visit,
+  pending,
+  onAdvance,
+  onRecord,
+  onRx,
+  onLabs,
+  onNotes,
+}: {
+  visit: OpdVisitUi;
+  pending: boolean;
+  onAdvance: (next: OpdVisitStatus) => void;
+  onRecord: () => void;
+  onRx: () => void;
+  onLabs: () => void;
+  onNotes: () => void;
+}) {
   const statusInfo = getVisitStatusInfo(visit.status);
-  const priorityInfo = getPriorityInfo(visit.priority);
+  const canStart = visit.status === "waiting" || visit.status === "vitals";
+  const canComplete = visit.status === "consultation";
+  const primaryLabel = canComplete ? "Mark Completed" : "Start Consultation";
+  const primaryDisabled = pending || (!canStart && !canComplete);
+  const nextStatus: OpdVisitStatus = canComplete ? "completed" : "consultation";
 
   return (
     <Card className="border-border/60 shadow-premium rounded-xl overflow-hidden">
@@ -215,7 +338,6 @@ function VisitDetail({ visit, onStartConsultation, onRecord, onRx, onLabs, onNot
             <p className="text-xs text-muted-foreground font-mono">{visit.mrn}</p>
             <div className="flex items-center gap-2 mt-2">
               <StatusPill status={statusInfo.status}>{statusInfo.label}</StatusPill>
-              <StatusPill status={priorityInfo.status}>{priorityInfo.label}</StatusPill>
             </div>
           </div>
         </div>
@@ -268,16 +390,19 @@ function VisitDetail({ visit, onStartConsultation, onRecord, onRx, onLabs, onNot
           <ColorAvatar name={visit.doctorName} color="oklch(0.42 0.13 200)" />
           <div>
             <p className="text-sm font-medium text-foreground">{visit.doctorName}</p>
-            <p className="text-xs text-muted-foreground">{visit.department}</p>
           </div>
         </div>
       </div>
 
       {/* Actions */}
       <div className="p-5 space-y-2">
-        <Button className="w-full bg-brand-600 hover:bg-brand-700 h-10" onClick={onStartConsultation}>
+        <Button
+          className="w-full bg-brand-600 hover:bg-brand-700 h-10"
+          disabled={primaryDisabled}
+          onClick={() => onAdvance(nextStatus)}
+        >
           <Stethoscope className="h-4 w-4 mr-2" />
-          Start Consultation
+          {pending ? "Saving…" : primaryLabel}
         </Button>
         <div className="grid grid-cols-3 gap-2">
           <Button variant="outline" size="sm" className="h-9" onClick={onRx}>
@@ -334,28 +459,16 @@ function VitalCard({
   );
 }
 
-function getVisitStatusInfo(status: string): { status: "success" | "warning" | "danger" | "info" | "neutral"; label: string } {
+function getVisitStatusInfo(status: OpdVisitStatus): { status: "success" | "warning" | "danger" | "info" | "neutral"; label: string } {
   switch (status) {
-    case "in_consultation":
+    case "consultation":
       return { status: "info", label: "In Consult" };
-    case "vitals_done":
-      return { status: "warning", label: "Vitals Done" };
+    case "vitals":
+      return { status: "warning", label: "Vitals" };
     case "waiting":
       return { status: "neutral", label: "Waiting" };
     case "completed":
       return { status: "success", label: "Completed" };
-    default:
-      return { status: "neutral", label: status };
   }
-}
-
-function getPriorityInfo(priority: string): { status: "success" | "warning" | "danger" | "info" | "neutral"; label: string } {
-  switch (priority) {
-    case "emergency":
-      return { status: "danger", label: "Emergency" };
-    case "urgent":
-      return { status: "warning", label: "Urgent" };
-    default:
-      return { status: "neutral", label: "Routine" };
-  }
+  return { status: "neutral", label: status };
 }
